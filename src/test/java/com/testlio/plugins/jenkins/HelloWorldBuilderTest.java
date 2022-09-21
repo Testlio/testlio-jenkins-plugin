@@ -1,4 +1,4 @@
-package com.testlio.plugins.testliojenkinsplugin;
+package com.testlio.plugins.jenkins;
 
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
