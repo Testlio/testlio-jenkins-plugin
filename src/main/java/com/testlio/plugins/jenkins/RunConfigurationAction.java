@@ -8,13 +8,17 @@ public class RunConfigurationAction implements RunAction2 {
     private transient Run run;
 
     private final String testConfig;
-    private final String projectConfig ;
+    private final String projectConfig;
     private final String testArgs;
 
     public RunConfigurationAction(String testConfig, String projectConfig, String testArgs) {
         this.testConfig = testConfig;
         this.projectConfig = projectConfig;
         this.testArgs = testArgs;
+    }
+
+    public Run getRun() {
+        return run;
     }
 
     public String getTestConfig() {
@@ -52,9 +56,5 @@ public class RunConfigurationAction implements RunAction2 {
     @Override
     public void onLoad(Run<?, ?> run) {
         this.run = run;
-    }
-
-    public Run getRun() {
-        return run;
     }
 }
