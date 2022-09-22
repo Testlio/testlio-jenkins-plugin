@@ -2,7 +2,7 @@
 
 ## Introduction
 
-TODO Describe what your plugin does here
+Create automated Testlio runs in your CI pipeline.
 
 ## Getting started
 
