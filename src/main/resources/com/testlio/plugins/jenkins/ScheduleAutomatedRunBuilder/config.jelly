@@ -131,41 +131,66 @@
         </f:entry>
     </f:advanced>
     <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            updateFormFields();
-        });
+        function findElementById(parent, id) {
+            return parent.querySelector('[id=' + id + ']')
+        }
 
-        document.getElementById('appType').addEventListener('change', function() {
-            updateFormFields();
-        });
-
-        function updateFormFields() {
-            const appType = document.getElementById('appType').value;
-            console.log(appType);
-
-            if (appType === 'BROWSER') {
-                document.getElementById('browserTestType').style.display = 'block';
-                document.getElementById('browserSelector').style.display = 'block';
-
-                document.getElementById('deviceTestType').style.display = 'none';
-                document.getElementById('appBuildURI').style.display = 'none';
-                document.getElementById('deviceState').style.display = 'none';
-                document.getElementById('deviceSelector').style.display = 'none';
-            }
-            if (appType.includes('DEVICE')) {
-                document.getElementById('deviceTestType').style.display = 'block';
-                document.getElementById('deviceSelector').style.display = 'block';
-                document.getElementById('deviceState').style.display = 'block';
-
-                if (appType === 'DEVICE_APP') {
-                    document.getElementById('appBuildURI').style.display = 'block';
-                } else {
-                    document.getElementById('appBuildURI').style.display = 'none';
+        function waitForElement(selector) {
+            return new Promise(resolve => {
+                if (document.querySelector(selector)) {
+                    return resolve(document.querySelector(selector));
                 }
 
-                document.getElementById('browserTestType').style.display = 'none';
-                document.getElementById('browserSelector').style.display = 'none';
+                const observer = new MutationObserver(mutations => {
+                    if (document.querySelector(selector)) {
+                        resolve(document.querySelector(selector));
+                        observer.disconnect();
+                    }
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        }
+
+        function updateFormFields(pluginBody) {
+            const appType = findElementById(pluginBody, 'appType').value;
+
+            if (appType === 'BROWSER') {
+                findElementById(pluginBody, 'browserTestType').style.display = 'block';
+                findElementById(pluginBody, 'browserSelector').style.display = 'block';
+
+                findElementById(pluginBody, 'deviceTestType').style.display = 'none';
+                findElementById(pluginBody, 'appBuildURI').style.display = 'none';
+                findElementById(pluginBody, 'deviceState').style.display = 'none';
+                findElementById(pluginBody, 'deviceSelector').style.display = 'none';
+            }
+            if (appType.includes('DEVICE')) {
+                findElementById(pluginBody, 'deviceTestType').style.display = 'block';
+                findElementById(pluginBody, 'deviceSelector').style.display = 'block';
+                findElementById(pluginBody, 'deviceState').style.display = 'block';
+
+                if (appType === 'DEVICE_APP') {
+                    findElementById(pluginBody, 'appBuildURI').style.display = 'block';
+                } else {
+                    findElementById(pluginBody, 'appBuildURI').style.display = 'none';
+                }
+
+                findElementById(pluginBody, 'browserTestType').style.display = 'none';
+                findElementById(pluginBody, 'browserSelector').style.display = 'none';
             }
         }
+
+        async function load() {
+            const pluginBody = await waitForElement("div[descriptorid='com.testlio.plugins.jenkins.ScheduleAutomatedRunBuilder']");
+            updateFormFields(pluginBody);
+            findElementById(pluginBody, 'appType').addEventListener('change', function () {
+                updateFormFields(pluginBody);
+            });
+        }
+
+        load();
     </script>
 </j:jelly>
