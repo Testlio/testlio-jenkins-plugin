@@ -1,14 +1,171 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:entry title="${%TestConfig}" field="testConfig">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%ProjectConfig}" field="projectConfig">
-        <f:textbox />
+    <f:section title="${%Project}">
+        <f:entry title="${%ProjectId}" field="projectId">
+            <f:number min="0" />
+        </f:entry>
+    </f:section>
+    <f:section title="${%ChooseYourApplication}">
+        <f:entry title="${%AppType}" field="appType">
+            <select id="appType" name="appType" >
+                <j:forEach var="appType" items="${descriptor.appTypes}">
+                    <option value="${appType.value}"
+                            selected="${appType.value == instance.appType ? 'true' : null}">
+                        ${appType.name}
+                    </option>
+                </j:forEach>
+            </select>
+        </f:entry>
+        <div id="appBuildURI">
+            <f:entry title="${%AppBuildURI}" field="appBuildURI">
+                <f:textbox />
+            </f:entry>
+        </div>
+    </f:section>
+    <f:section title="${%ConfigureYourTests}">
+        <div id="browserTestType">
+            <f:entry title="${%TestType}" field="browserTestType">
+                <f:select />
+            </f:entry>
+        </div>
+        <div id="deviceTestType">
+            <f:entry title="${%TestType}" field="deviceTestType">
+                <f:select />
+            </f:entry>
+        </div>
+        <f:entry title="${%TestPackageURI}" field="testPackageURI">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%VideoCapture}" field="videoCapture">
+            <f:checkbox default="true" />
+        </f:entry>
+    </f:section>
+    <div id="browserSelector" name="browserSelector">
+        <f:section title="${%SelectBrowsers}">
+            <f:entry title="${%BrowserNames}">
+                <select multiple="true" name="browserNames">
+                    <j:forEach var="browserName" items="${descriptor.browserNames}">
+                        <option value="${browserName.value}"
+                                selected="${instance.browserSelector.browserNameStrings.contains(browserName.value) ? 'true' : null}">
+                            ${browserName.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+            <f:entry title="${%BrowserVersions}">
+                <select multiple="true" name="browserVersions">
+                    <j:forEach var="browserVersion" items="${descriptor.browserVersions}">
+                        <option value="${browserVersion.value}"
+                                selected="${instance.browserSelector.browserVersions.contains(browserVersion.value) ? 'true' : null}">
+                            ${browserVersion.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+            <f:entry title="${%PlatformNames}">
+                <select multiple="true" name="platformNames">
+                    <j:forEach var="platformName" items="${descriptor.platformNames}">
+                        <option value="${platformName.value}"
+                                selected="${instance.browserSelector.platformNameStrings.contains(platformName.value) ? 'true' : null}">
+                            ${platformName.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+        </f:section>
+    </div>
+    <div id="deviceSelector" name="deviceSelector">
+        <f:section title="${%SelectDevices}">
+            <f:entry title="${%DeviceOperatingSystems}">
+                <f:textbox name="deviceOses" value="${instance.deviceSelector.deviceOses}" />
+            </f:entry>
+            <f:entry title="${%DeviceManufacturers}">
+                <f:textbox name="deviceManufacturers" value="${instance.deviceSelector.deviceManufacturers}" />
+            </f:entry>
+            <f:entry title="${%DeviceNames}">
+                <f:textbox name="deviceNames" value="${instance.deviceSelector.deviceNames}" />
+            </f:entry>
+            <f:entry title="${%DeviceFormFactors}">
+                <f:textbox name="deviceFormFactors" value="${instance.deviceSelector.deviceFormFactors}" />
+            </f:entry>
+        </f:section>
+    </div>
+    <f:entry title="${%Select}" field="select">
+        <f:number min="1" value="${instance.select}" />
     </f:entry>
     <f:advanced>
+        <div id="deviceState" name="deviceState">
+            <f:entry title="${%DeviceRadios}" field="deviceRadios">
+                <div name="deviceRadios">
+                    <f:checkbox title="${%WiFi}" name="wifi" default="${instance.deviceState.deviceRadios.wifi ? 'true' : null}" />
+                    <f:checkbox title="${%Bluetooth}" name="bluetooth" default="${instance.deviceState.deviceRadios.bluetooth}" />
+                    <f:checkbox title="${%GPS}" name="gps" default="${instance.deviceState.deviceRadios.gps ? 'true' : null}" />
+                    <f:checkbox title="${%NFC}" name="nfc" default="${instance.deviceState.deviceRadios.nfc ? 'true' : null}" />
+                </div>
+            </f:entry>
+            <f:entry title="${%DeviceLocation}" field="deviceLocation">
+                <div name="deviceLocation">
+                    <input type="number" name="my.longitude" step="0.00001" min="0" value="${instance.deviceState.deviceLocation.longitude}"  />
+                    <input type="number" name="my.latitude" step="0.00001" min="0" value="${instance.deviceState.deviceLocation.latitude}" />
+                </div>
+            </f:entry>
+            <f:entry title="${%DevicePaths}" field="devicePaths">
+                <f:textbox name="hostMachinePaths" value="${instance.deviceState.hostMachinePaths}" />
+                <f:textbox name="androidPaths" value="${instance.deviceState.androidPaths}" />
+            </f:entry>
+            <f:entry title="${%DeviceLocale}" field="deviceLocale">
+                <f:textbox value="${instance.deviceState.deviceLocale}" />
+            </f:entry>
+            <f:entry title="${%NetworkProfile}" field="networkProfile">
+                <f:select default="${instance.deviceState.networkProfile}" />
+            </f:entry>
+        </div>
+        <f:entry title="${%Timeout}" field="timeout">
+            <f:number min="0" />
+        </f:entry>
         <f:entry title="${%TestArgs}" field="testArgs">
             <f:textbox />
         </f:entry>
+        <f:entry title="${%WaitForResults}" field="waitForResults">
+            <f:checkbox default="true" />
+        </f:entry>
     </f:advanced>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            updateFormFields();
+        });
+
+        document.getElementById('appType').addEventListener('change', function() {
+            updateFormFields();
+        });
+
+        function updateFormFields() {
+            const appType = document.getElementById('appType').value;
+            console.log(appType);
+
+            if (appType === 'BROWSER') {
+                document.getElementById('browserTestType').style.display = 'block';
+                document.getElementById('browserSelector').style.display = 'block';
+
+                document.getElementById('deviceTestType').style.display = 'none';
+                document.getElementById('appBuildURI').style.display = 'none';
+                document.getElementById('deviceState').style.display = 'none';
+                document.getElementById('deviceSelector').style.display = 'none';
+            }
+            if (appType.includes('DEVICE')) {
+                document.getElementById('deviceTestType').style.display = 'block';
+                document.getElementById('deviceSelector').style.display = 'block';
+                document.getElementById('deviceState').style.display = 'block';
+
+                if (appType === 'DEVICE_APP') {
+                    document.getElementById('appBuildURI').style.display = 'block';
+                } else {
+                    document.getElementById('appBuildURI').style.display = 'none';
+                }
+
+                document.getElementById('browserTestType').style.display = 'none';
+                document.getElementById('browserSelector').style.display = 'none';
+            }
+        }
+    </script>
 </j:jelly>

@@ -1,8 +1,10 @@
 package com.testlio.plugins.jenkins;
 
+import com.testlio.plugins.jenkins.enums.AppTypeEnum;
 import hudson.model.FreeStyleBuild;
 import hudson.model.FreeStyleProject;
 import hudson.model.Label;
+import org.apache.xpath.operations.Bool;
 import org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition;
 import org.jenkinsci.plugins.workflow.job.WorkflowJob;
 import org.jenkinsci.plugins.workflow.job.WorkflowRun;
@@ -15,22 +17,33 @@ public class ScheduleAutomatedRunBuilderTest {
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
 
-    final String testConfig = "{}";
-    final String projectConfig = "{}";
-    final String testArgs = "--spec";
+    final Integer projectId = 1234;
+    final AppTypeEnum appType = AppTypeEnum.DEVICE_APP;
+    final String testPackageURI = "https://test.com/package";
+
+    final Boolean videoCapture = true;
+    final Integer select = 1;
+    final Integer timeout = 900;
+    final Boolean waitForResults = true;
 
     @Test
     public void testConfigRoundtrip() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        project.getBuildersList().add(new ScheduleAutomatedRunBuilder(testConfig, projectConfig, testArgs));
+        project.getBuildersList().add(new ScheduleAutomatedRunBuilder(
+                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+        ));
         project = jenkins.configRoundtrip(project);
-        jenkins.assertEqualDataBoundBeans(new ScheduleAutomatedRunBuilder(testConfig, projectConfig, testArgs), project.getBuildersList().get(0));
+        jenkins.assertEqualDataBoundBeans(new ScheduleAutomatedRunBuilder(
+                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+        ), project.getBuildersList().get(0));
     }
 
     @Test
     public void testBuild() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
-        ScheduleAutomatedRunBuilder builder = new ScheduleAutomatedRunBuilder(testConfig, projectConfig, testArgs);
+        ScheduleAutomatedRunBuilder builder = new ScheduleAutomatedRunBuilder(
+                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+        );
         project.getBuildersList().add(builder);
 
         FreeStyleBuild build = jenkins.buildAndAssertSuccess(project);
@@ -44,8 +57,8 @@ public class ScheduleAutomatedRunBuilderTest {
         WorkflowJob job = jenkins.createProject(WorkflowJob.class, "test-scripted-pipeline");
         String pipelineScript
                 = String.format("node {\n"
-                + "  schedule-automated-run '%s' '%s' '%s'\n"
-                + "}", testConfig, projectConfig, testArgs);
+                + "  schedule-automated-run '%s' '%s' '%s' '%s' '%s' '%s' '%s'\n"
+                + "}", projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults);
         job.setDefinition(new CpsFlowDefinition(pipelineScript, true));
         WorkflowRun completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
         String expectedString = "Script works!";

@@ -6,17 +6,118 @@
         </l:side-panel>
         <l:main-panel>
             <h1>
-                Run Configuration
+                ${%RunConfiguration}
             </h1>
-            <div>
-                Test Config: ${it.testConfig}
-            </div>
-            <div>
-                Project Config: ${it.projectConfig}
-            </div>
-            <div>
-                Test Args: ${it.testArgs}
-            </div>
+            <section>
+                <h3>
+                    ${%Project}
+                </h3>
+                <div>
+                    <b>${%ProjectId}:</b> ${it.projectId}
+                </div>
+            </section>
+            <j:if test="${it.appType != 'BROWSER'}">
+                <section>
+                    <h3>
+                        ${%Application}
+                    </h3>
+                    <div>
+                        <b>${%AppType}:</b> ${it.appType.name}
+                    </div>
+                    <j:if test="${it.appType == 'DEVICE_APP'}">
+                        <div>
+                            <b>${%AppBuildURI}:</b> <a href="${it.appBuildURI}" target="_blank" style="margin-left:5px;">${it.appBuildURI}</a>
+                        </div>
+                    </j:if>
+                </section>
+            </j:if>
+            <section>
+                <h3>
+                    ${%Tests}
+                </h3>
+                <div>
+                    <b>${%TestType}:</b> ${it.appType == 'BROWSER' ? it.browserTestType.name : it.deviceTestType.name}
+                </div>
+                <div>
+                    <b>${%TestPackageURI}:</b> <a href="${it.testPackageURI}" target="_blank" style="margin-left:5px;">${it.testPackageURI}</a>
+                </div>
+                <div>
+                    <b>${%VideoCapture}:</b> ${it.videoCapture ? 'Yes' : 'No'}
+                </div>
+            </section>
+            <section>
+                <j:if test="${it.appType == 'BROWSER'}">
+                    <h3>
+                        ${%Browsers}
+                    </h3>
+                    <div>
+                        <b>${%BrowserNames}:</b> ${it.browserSelector.formattedBrowserNames}
+                    </div>
+                    <div>
+                        <b>${%BrowserVersions}:</b> ${it.browserSelector.formattedBrowserVersions}
+                    </div>
+                    <div>
+                        <b>${%PlatformNames}:</b> ${it.browserSelector.formattedPlatformNames}
+                    </div>
+                </j:if>
+                <j:if test="${it.appType == 'DEVICE_APP' || it.appType == 'DEVICE_WEB'}">
+                    <h3>
+                        ${%Devices}
+                    </h3>
+                    <div>
+                        <b>${%DeviceOperatingSystems}:</b> ${it.deviceSelector.deviceOses}
+                    </div>
+                    <div>
+                        <b>${%DeviceManufacturers}:</b> ${it.deviceSelector.deviceManufacturers}
+                    </div>
+                    <div>
+                        <b>${%DeviceNames}:</b> ${it.deviceSelector.deviceNames}
+                    </div>
+                    <div>
+                        <b>${%DeviceFormFactors}:</b> ${it.deviceSelector.deviceFormFactors}
+                    </div>
+                </j:if>
+                <div>
+                    <b>${%Select}:</b> ${it.select}
+                </div>
+            </section>
+            <j:if test="${it.appType == 'DEVICE_APP' || it.appType == 'DEVICE_WEB'}">
+                <section>
+                    <h3>
+                        ${%DeviceState}
+                    </h3>
+                    <div>
+                        <b>${%Radios}:</b>
+                        <ul>
+                            <li><b>${%WiFi}</b> - ${it.deviceState.deviceRadios.wifi ? 'Yes' : 'No'}</li>
+                            <li><b>${%Bluetooth}</b> - ${it.deviceState.deviceRadios.bluetooth ? 'Yes' : 'No'}</li>
+                            <li><b>${%GPS}</b> - ${it.deviceState.deviceRadios.gps ? 'Yes' : 'No'}</li>
+                            <li><b>${%NFC}</b> - ${it.deviceState.deviceRadios.nfc ? 'Yes' : 'No'}</li>
+                        </ul>
+                    </div>
+                    <div><b>${%DeviceLocation}:</b> ${it.deviceState.deviceLocation.longitude}, ${it.deviceState.deviceLocation.latitude}</div>
+                    <div><b>${%DeviceLocale}:</b> ${it.deviceState.deviceLocale}</div>
+                    <div><b>${%HostMachinePaths}:</b> ${it.deviceState.hostMachinePaths}</div>
+                    <div><b>${%DevicePaths}:</b> ${it.deviceState.androidPaths}</div>
+                    <div><b>${%NetworkProfile}:</b> ${it.deviceState.networkProfile.name}</div>
+                </section>
+            </j:if>
+            <section>
+                <h3>
+                    ${%Other}
+                </h3>
+                <div>
+                    <b>${%Timeout}:</b> ${it.timeout}
+                </div>
+                <div>
+                    <b>${%WaitForResults}:</b> ${it.waitForResults ? 'Yes' : 'No'}
+                </div>
+                <j:if test="it.testArgs != null">
+                    <div>
+                        <b>${%TestArgs}:</b> <pre>${it.testArgs}</pre>
+                    </div>
+                </j:if>
+            </section>
         </l:main-panel>
     </l:layout>
 </j:jelly>
