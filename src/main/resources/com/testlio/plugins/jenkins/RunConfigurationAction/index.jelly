@@ -15,6 +15,12 @@
                 <div>
                     <b>${%ProjectId}:</b> ${it.projectId}
                 </div>
+                <div>
+                    <b>${%TestRunCollectionGuid}:</b> ${it.testRunCollectionGuid}
+                </div>
+                <div>
+                    <b>${%AutomatedTestRunCollectionGuid}:</b> ${it.automatedTestRunCollectionGuid}
+                </div>
             </section>
             <j:if test="${it.appType != 'BROWSER'}">
                 <section>
@@ -74,7 +80,7 @@
                         <b>${%DeviceNames}:</b> ${it.deviceSelector.deviceNames}
                     </div>
                     <div>
-                        <b>${%DeviceFormFactors}:</b> ${it.deviceSelector.deviceFormFactors}
+                        <b>${%DeviceFormFactors}:</b> ${it.deviceSelector.formattedDeviceFormFactors}
                     </div>
                 </j:if>
                 <div>
@@ -106,9 +112,16 @@
                 <h3>
                     ${%Other}
                 </h3>
-                <div>
-                    <b>${%Timeout}:</b> ${it.timeout}
-                </div>
+                <j:if test="it.appType == 'BROWSER'">
+                    <div>
+                        <b>${%Timeout}:</b> ${it.timeoutBrowsers} minutes
+                    </div>
+                </j:if>
+                <j:if test="it.appType != 'BROWSER'">
+                    <div>
+                        <b>${%Timeout}:</b> ${it.timeoutDevices} minutes
+                    </div>
+                </j:if>
                 <div>
                     <b>${%WaitForResults}:</b> ${it.waitForResults ? 'Yes' : 'No'}
                 </div>

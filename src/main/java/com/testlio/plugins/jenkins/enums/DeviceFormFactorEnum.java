@@ -1,13 +1,11 @@
 package com.testlio.plugins.jenkins.enums;
 
-public enum NetworkProfileEnum {
-    FULL("Full"),
-    HALF("Half"),
-    NONE("None");
-
+public enum DeviceFormFactorEnum {
+    PHONE("Phone"),
+    TABLET("Tablet");
     private final String name;
 
-    NetworkProfileEnum(String name) {
+    DeviceFormFactorEnum(String name) {
         this.name = name;
     }
 

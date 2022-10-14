@@ -4,6 +4,12 @@
         <f:entry title="${%ProjectId}" field="projectId">
             <f:number min="0" />
         </f:entry>
+        <f:entry title="${%TestRunCollectionGuid}" field="testRunCollectionGuid">
+            <f:textbox placeholder="0b9bc46e-7695-4486-b9af-5cf2cfe1a71b" />
+        </f:entry>
+        <f:entry title="${%AutomatedTestRunCollectionGuid}" field="automatedTestRunCollectionGuid">
+            <f:textbox placeholder="0b9bc46e-7695-4486-b9af-5cf2cfe1a71b" />
+        </f:entry>
     </f:section>
     <f:section title="${%ChooseYourApplication}">
         <f:entry title="${%AppType}" field="appType">
@@ -18,7 +24,7 @@
         </f:entry>
         <div id="appBuildURI">
             <f:entry title="${%AppBuildURI}" field="appBuildURI">
-                <f:textbox />
+                <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
             </f:entry>
         </div>
     </f:section>
@@ -34,7 +40,7 @@
             </f:entry>
         </div>
         <f:entry title="${%TestPackageURI}" field="testPackageURI">
-            <f:textbox />
+            <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
         </f:entry>
         <f:entry title="${%VideoCapture}" field="videoCapture">
             <f:checkbox default="true" />
@@ -76,37 +82,74 @@
     </div>
     <div id="deviceSelector" name="deviceSelector">
         <f:section title="${%SelectDevices}">
-            <f:entry title="${%DeviceOperatingSystems}">
-                <f:textbox name="deviceOses" value="${instance.deviceSelector.deviceOses}" />
+            <f:entry title="${%DeviceOperatingSystems}" field="deviceOses">
+                <f:textbox placeholder="14.6, 8.0.0, 10"
+                           value="${instance.deviceSelector.deviceOses}"
+                />
             </f:entry>
-            <f:entry title="${%DeviceManufacturers}">
-                <f:textbox name="deviceManufacturers" value="${instance.deviceSelector.deviceManufacturers}" />
+            <f:entry title="${%DeviceManufacturers}" field="deviceManufacturers">
+                <f:textbox placeholder="Samsung, Google, LG"
+                           value="${instance.deviceSelector.deviceManufacturers}"
+                />
             </f:entry>
-            <f:entry title="${%DeviceNames}">
-                <f:textbox name="deviceNames" value="${instance.deviceSelector.deviceNames}" />
+            <f:entry title="${%DeviceNames}" field="deviceNames">
+                <f:textbox placeholder="Samsung Galaxy A7, Sony Xperia XZ1, LG Stylo 5"
+                           value="${instance.deviceSelector.deviceNames}"
+                />
             </f:entry>
             <f:entry title="${%DeviceFormFactors}">
-                <f:textbox name="deviceFormFactors" value="${instance.deviceSelector.deviceFormFactors}" />
+                <select multiple="true" name="deviceFormFactors">
+                    <j:forEach var="deviceFormFactor" items="${descriptor.deviceFormFactors}">
+                        <option value="${deviceFormFactor.value}"
+                                selected="${instance.deviceSelector.deviceFormFactorStrings.contains(deviceFormFactor.value) ? 'true' : null}">
+                            ${deviceFormFactor.name}
+                        </option>
+                    </j:forEach>
+                </select>
             </f:entry>
         </f:section>
     </div>
     <f:entry title="${%Select}" field="select">
-        <f:number min="1" value="${instance.select}" />
+        <f:number min="1" default="2" value="${instance.select}" />
     </f:entry>
     <f:advanced>
         <div id="deviceState" name="deviceState">
             <f:entry title="${%DeviceRadios}" field="deviceRadios">
                 <div name="deviceRadios">
-                    <f:checkbox title="${%WiFi}" name="wifi" default="${instance.deviceState.deviceRadios.wifi ? 'true' : null}" />
-                    <f:checkbox title="${%Bluetooth}" name="bluetooth" default="${instance.deviceState.deviceRadios.bluetooth}" />
-                    <f:checkbox title="${%GPS}" name="gps" default="${instance.deviceState.deviceRadios.gps ? 'true' : null}" />
-                    <f:checkbox title="${%NFC}" name="nfc" default="${instance.deviceState.deviceRadios.nfc ? 'true' : null}" />
+                    <f:checkbox title="${%WiFi}"
+                                name="wifi"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.wifi ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%Bluetooth}"
+                                name="bluetooth"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.bluetooth ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%GPS}"
+                                name="gps"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.gps ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%NFC}"
+                                name="nfc"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.nfc ? 'true' : null) : 'true'}"
+                    />
                 </div>
             </f:entry>
             <f:entry title="${%DeviceLocation}" field="deviceLocation">
                 <div name="deviceLocation">
-                    <input type="number" name="my.longitude" step="0.00001" min="0" value="${instance.deviceState.deviceLocation.longitude}"  />
-                    <input type="number" name="my.latitude" step="0.00001" min="0" value="${instance.deviceState.deviceLocation.latitude}" />
+                    <input type="number"
+                           name="my.longitude"
+                           placeholder="24.753574"
+                           step="0.00001"
+                           min="0"
+                           value="${instance.deviceState.deviceLocation.longitude}"
+                    />
+                    <input type="number"
+                           name="my.latitude"
+                           placeholder="59.436962"
+                           step="0.00001"
+                           min="0"
+                           value="${instance.deviceState.deviceLocation.latitude}"
+                    />
                 </div>
             </f:entry>
             <f:entry title="${%DevicePaths}" field="devicePaths">
@@ -120,12 +163,21 @@
                 <f:select default="${instance.deviceState.networkProfile}" />
             </f:entry>
         </div>
-        <f:entry title="${%Timeout}" field="timeout">
-            <f:number min="0" />
-        </f:entry>
-        <f:entry title="${%TestArgs}" field="testArgs">
-            <f:textbox />
-        </f:entry>
+        <div id="timeoutDevices">
+            <f:entry title="${%TimeoutDevices}" field="timeoutDevices">
+                <f:number min="0" default="15" />
+            </f:entry>
+        </div>
+        <div id="timeoutBrowsers">
+            <f:entry title="${%TimeoutBrowsers}" field="timeoutBrowsers">
+                <f:number min="0" default="120" />
+            </f:entry>
+        </div>
+        <div id="testArgs">
+            <f:entry title="${%TestArgs}" field="testArgs">
+                <f:textbox placeholder="--spec tests/login-test.ts" />
+            </f:entry>
+        </div>
         <f:entry title="${%WaitForResults}" field="waitForResults">
             <f:checkbox default="true" />
         </f:entry>
@@ -161,16 +213,20 @@
             if (appType === 'BROWSER') {
                 findElementById(pluginBody, 'browserTestType').style.display = 'block';
                 findElementById(pluginBody, 'browserSelector').style.display = 'block';
+                findElementById(pluginBody, 'timeoutBrowsers').style.display = 'block';
+                findElementById(pluginBody, 'testArgs').style.display = 'block';
 
                 findElementById(pluginBody, 'deviceTestType').style.display = 'none';
                 findElementById(pluginBody, 'appBuildURI').style.display = 'none';
                 findElementById(pluginBody, 'deviceState').style.display = 'none';
                 findElementById(pluginBody, 'deviceSelector').style.display = 'none';
+                findElementById(pluginBody, 'timeoutDevices').style.display = 'none';
             }
             if (appType.includes('DEVICE')) {
                 findElementById(pluginBody, 'deviceTestType').style.display = 'block';
                 findElementById(pluginBody, 'deviceSelector').style.display = 'block';
                 findElementById(pluginBody, 'deviceState').style.display = 'block';
+                findElementById(pluginBody, 'timeoutDevices').style.display = 'block';
 
                 if (appType === 'DEVICE_APP') {
                     findElementById(pluginBody, 'appBuildURI').style.display = 'block';
@@ -180,6 +236,8 @@
 
                 findElementById(pluginBody, 'browserTestType').style.display = 'none';
                 findElementById(pluginBody, 'browserSelector').style.display = 'none';
+                findElementById(pluginBody, 'timeoutBrowsers').style.display = 'none';
+                findElementById(pluginBody, 'testArgs').style.display = 'none';
             }
         }
 

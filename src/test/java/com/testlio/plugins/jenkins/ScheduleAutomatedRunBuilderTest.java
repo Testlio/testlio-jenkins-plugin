@@ -18,6 +18,8 @@ public class ScheduleAutomatedRunBuilderTest {
     public JenkinsRule jenkins = new JenkinsRule();
 
     final Integer projectId = 1234;
+    final String testRunCollectionGuid = "test-run-collection-guid";
+    final String automatedTestRunCollectionGuid = "automated-test-run-collection-guid";
     final AppTypeEnum appType = AppTypeEnum.DEVICE_APP;
     final String testPackageURI = "https://test.com/package";
 
@@ -30,11 +32,13 @@ public class ScheduleAutomatedRunBuilderTest {
     public void testConfigRoundtrip() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         project.getBuildersList().add(new ScheduleAutomatedRunBuilder(
-                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid,
+                appType, testPackageURI, videoCapture, select, waitForResults
         ));
         project = jenkins.configRoundtrip(project);
         jenkins.assertEqualDataBoundBeans(new ScheduleAutomatedRunBuilder(
-                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid,
+                appType, testPackageURI, videoCapture, select, waitForResults
         ), project.getBuildersList().get(0));
     }
 
@@ -42,7 +46,8 @@ public class ScheduleAutomatedRunBuilderTest {
     public void testBuild() throws Exception {
         FreeStyleProject project = jenkins.createFreeStyleProject();
         ScheduleAutomatedRunBuilder builder = new ScheduleAutomatedRunBuilder(
-                projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults
+                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid, appType,
+                testPackageURI, videoCapture, select, waitForResults
         );
         project.getBuildersList().add(builder);
 
@@ -57,8 +62,11 @@ public class ScheduleAutomatedRunBuilderTest {
         WorkflowJob job = jenkins.createProject(WorkflowJob.class, "test-scripted-pipeline");
         String pipelineScript
                 = String.format("node {\n"
-                + "  schedule-automated-run '%s' '%s' '%s' '%s' '%s' '%s' '%s'\n"
-                + "}", projectId, appType, testPackageURI, videoCapture, select, timeout, waitForResults);
+                + "  schedule-automated-run '%s' '%s' '%s' '%s' '%s' '%s' '%s' '%s'\n"
+                + "}",
+                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid,
+                appType, testPackageURI, videoCapture, select, waitForResults
+        );
         job.setDefinition(new CpsFlowDefinition(pipelineScript, true));
         WorkflowRun completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
         String expectedString = "Script works!";

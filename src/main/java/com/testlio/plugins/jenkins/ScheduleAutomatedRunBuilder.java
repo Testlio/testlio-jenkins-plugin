@@ -22,12 +22,18 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildStep {
 
     // Mandatory attributes
 
     public final Integer projectId;
+
+    public final String testRunCollectionGuid;
+
+    public final String automatedTestRunCollectionGuid;
 
     public final AppTypeEnum appType;
 
@@ -36,8 +42,6 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     public final Boolean videoCapture;
 
     public final Integer select;
-
-    public final Integer timeout;
 
     public final Boolean waitForResults;
 
@@ -53,6 +57,9 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     @DataBoundSetter
     public BrowserSelector browserSelector = null;
 
+    @DataBoundSetter
+    public Integer timeoutBrowsers = null;
+
     // Device-specific attributes
     @DataBoundSetter
     public String appBuildURI = null;
@@ -66,16 +73,21 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     @DataBoundSetter
     public DeviceState deviceState = null;
 
+    @DataBoundSetter
+    public Integer timeoutDevices = null;
+
     @DataBoundConstructor
-    public ScheduleAutomatedRunBuilder(Integer projectId, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Integer timeout, Boolean waitForResults) {
+    public ScheduleAutomatedRunBuilder(Integer projectId, String testRunCollectionGuid, String automatedTestRunCollectionGuid, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Boolean waitForResults) {
         this.projectId = projectId;
+        this.testRunCollectionGuid = testRunCollectionGuid;
+        this.automatedTestRunCollectionGuid = automatedTestRunCollectionGuid;
         this.appType = appType;
         this.testPackageURI = testPackageURI;
         this.videoCapture = videoCapture;
         this.select = select;
-        this.timeout = timeout;
         this.waitForResults = waitForResults;
     }
+
 
     @Override
     public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener)
@@ -84,22 +96,25 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
 
         RunConfigurationAction config = new RunConfigurationAction(
                 projectId,
+                testRunCollectionGuid,
+                automatedTestRunCollectionGuid,
                 appType,
                 testPackageURI,
                 videoCapture,
                 select,
-                timeout,
                 waitForResults
         );
 
         if (isBrowser()) {
             config.setBrowserTestType(browserTestType);
             config.setBrowserSelector(browserSelector);
+            config.setTimeoutBrowsers(timeoutBrowsers);
         } else {
             config.setAppBuildURI(appBuildURI);
             config.setDeviceTestType(deviceTestType);
             config.setDeviceSelector(deviceSelector);
             config.setDeviceState(deviceState);
+            config.setTimeoutDevices(timeoutDevices);
         }
 
         if (testArgs != null) config.setTestArgs(testArgs);
@@ -137,6 +152,14 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
             ListBoxModel items = new ListBoxModel();
             for (PlatformNameEnum platformNameEnum : PlatformNameEnum.values()) {
                 items.add(platformNameEnum.getName(), platformNameEnum.toString());
+            }
+            return items;
+        }
+
+        public ListBoxModel getDeviceFormFactors() {
+            ListBoxModel items = new ListBoxModel();
+            for (DeviceFormFactorEnum deviceFormFactorEnum : DeviceFormFactorEnum.values()) {
+                items.add(deviceFormFactorEnum.getName(), deviceFormFactorEnum.toString());
             }
             return items;
         }
@@ -180,6 +203,24 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
             }
             if (value <= 0) {
                 return FormValidation.error("Workspace ID cannot be negative or 0");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckTestRunCollectionGuid(@QueryParameter String value)
+                throws IOException, ServletException {
+            if (value.isEmpty()) {
+                return FormValidation.error("Test run collection GUID should be provided");
+            }
+
+            return FormValidation.ok();
+        }
+
+        public FormValidation doCheckAutomatedTestRunCollectionGuid(@QueryParameter String value)
+                throws IOException, ServletException {
+            if (value.isEmpty()) {
+                return FormValidation.error("Automated test run collection GUID should be provided");
             }
 
             return FormValidation.ok();
@@ -270,18 +311,22 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     public String toString() {
         return "ScheduleAutomatedRunBuilder{" +
                 "projectId=" + projectId +
+                ", testRunCollectionGuid='" + testRunCollectionGuid + '\'' +
+                ", automatedTestRunCollectionGuid='" + automatedTestRunCollectionGuid + '\'' +
                 ", appType=" + appType +
                 ", testPackageURI='" + testPackageURI + '\'' +
+                ", videoCapture=" + videoCapture +
                 ", select=" + select +
-                ", timeout=" + timeout +
+                ", waitForResults=" + waitForResults +
                 ", testArgs='" + testArgs + '\'' +
                 ", browserTestType=" + browserTestType +
                 ", browserSelector=" + browserSelector +
+                ", timeoutBrowsers=" + timeoutBrowsers +
                 ", appBuildURI='" + appBuildURI + '\'' +
                 ", deviceTestType=" + deviceTestType +
                 ", deviceSelector=" + deviceSelector +
-                ", videoCapture=" + videoCapture +
                 ", deviceState=" + deviceState +
+                ", timeoutDevices=" + timeoutDevices +
                 '}';
     }
 }

@@ -15,6 +15,10 @@ public class RunConfigurationAction implements RunAction2 {
 
     private final Integer projectId;
 
+    private final String testRunCollectionGuid;
+
+    private final String automatedTestRunCollectionGuid;
+
     private final AppTypeEnum appType;
 
     private final String testPackageURI;
@@ -22,8 +26,6 @@ public class RunConfigurationAction implements RunAction2 {
     private final Boolean videoCapture;
 
     private final Integer select;
-
-    private final Integer timeout;
 
     private final Boolean waitForResults;
 
@@ -41,13 +43,18 @@ public class RunConfigurationAction implements RunAction2 {
 
     private String testArgs = null;
 
-    public RunConfigurationAction(Integer projectId, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Integer timeout, Boolean waitForResults) {
+    public Integer timeoutBrowsers = null;
+
+    public Integer timeoutDevices = null;
+
+    public RunConfigurationAction(Integer projectId, String testRunCollectionGuid, String automatedTestRunCollectionGuid, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Boolean waitForResults) {
         this.projectId = projectId;
+        this.testRunCollectionGuid = testRunCollectionGuid;
+        this.automatedTestRunCollectionGuid = automatedTestRunCollectionGuid;
         this.appType = appType;
         this.testPackageURI = testPackageURI;
         this.videoCapture = videoCapture;
         this.select = select;
-        this.timeout = timeout;
         this.waitForResults = waitForResults;
     }
 
@@ -57,6 +64,14 @@ public class RunConfigurationAction implements RunAction2 {
 
     public Integer getProjectId() {
         return projectId;
+    }
+
+    public String getTestRunCollectionGuid() {
+        return testRunCollectionGuid;
+    }
+
+    public String getAutomatedTestRunCollectionGuid() {
+        return automatedTestRunCollectionGuid;
     }
 
     public AppTypeEnum getAppType() {
@@ -73,10 +88,6 @@ public class RunConfigurationAction implements RunAction2 {
 
     public Integer getSelect() {
         return select;
-    }
-
-    public Integer getTimeout() {
-        return timeout;
     }
 
     public Boolean getWaitForResults() {
@@ -137,6 +148,22 @@ public class RunConfigurationAction implements RunAction2 {
 
     public void setAppBuildURI(String appBuildURI) {
         this.appBuildURI = appBuildURI;
+    }
+
+    public Integer getTimeoutBrowsers() {
+        return timeoutBrowsers;
+    }
+
+    public void setTimeoutBrowsers(Integer timeoutBrowsers) {
+        this.timeoutBrowsers = timeoutBrowsers;
+    }
+
+    public Integer getTimeoutDevices() {
+        return timeoutDevices;
+    }
+
+    public void setTimeoutDevices(Integer timeoutDevices) {
+        this.timeoutDevices = timeoutDevices;
     }
 
     @Override
