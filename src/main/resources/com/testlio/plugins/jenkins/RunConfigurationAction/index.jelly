@@ -112,12 +112,12 @@
                 <h3>
                     ${%Other}
                 </h3>
-                <j:if test="it.appType == 'BROWSER'">
+                <j:if test="${it.appType == 'BROWSER}'">
                     <div>
                         <b>${%Timeout}:</b> ${it.timeoutBrowsers} minutes
                     </div>
                 </j:if>
-                <j:if test="it.appType != 'BROWSER'">
+                <j:if test="${it.appType != 'BROWSER}'">
                     <div>
                         <b>${%Timeout}:</b> ${it.timeoutDevices} minutes
                     </div>
