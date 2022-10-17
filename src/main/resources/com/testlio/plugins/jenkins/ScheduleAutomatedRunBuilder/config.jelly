@@ -184,7 +184,7 @@
     </f:advanced>
     <script>
         function findElementById(parent, id) {
-            return parent.querySelector('[id=' + id + ']')
+            return parent.querySelector('[id=' + id + ']');
         }
 
         function waitForElement(selector) {
@@ -241,12 +241,13 @@
             }
         }
 
-        async function load() {
-            const pluginBody = await waitForElement("div[descriptorid='com.testlio.plugins.jenkins.ScheduleAutomatedRunBuilder']");
-            updateFormFields(pluginBody);
-            findElementById(pluginBody, 'appType').addEventListener('change', function () {
+        function load() {
+            waitForElement("div[descriptorid='com.testlio.plugins.jenkins.ScheduleAutomatedRunBuilder']").then((pluginBody) => {
                 updateFormFields(pluginBody);
-            });
+                findElementById(pluginBody, 'appType').addEventListener('change', function () {
+                    updateFormFields(pluginBody);
+                });
+            })
         }
 
         load();
