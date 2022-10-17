@@ -13,7 +13,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.Builder;
 import hudson.util.FormValidation;
 import hudson.util.ListBoxModel;
-import jenkins.org.apache.commons.validator.routines.UrlValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -22,8 +22,6 @@ import org.kohsuke.stapler.QueryParameter;
 
 import javax.servlet.ServletException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildStep {
 
