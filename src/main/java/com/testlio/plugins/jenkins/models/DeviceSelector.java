@@ -47,6 +47,7 @@ public class DeviceSelector {
     }
 
     public String getFormattedDeviceFormFactors() {
+        if (deviceFormFactors.isEmpty()) return "-";
         return deviceFormFactors.stream().map(DeviceFormFactorEnum::getName).collect(Collectors.joining(", "));
     }
 

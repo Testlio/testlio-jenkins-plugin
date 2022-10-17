@@ -13,7 +13,7 @@
     </f:section>
     <f:section title="${%ChooseYourApplication}">
         <f:entry title="${%AppType}" field="appType">
-            <select id="appType" name="appType" >
+            <select name="appType" >
                 <j:forEach var="appType" items="${descriptor.appTypes}">
                     <option value="${appType.value}"
                             selected="${appType.value == instance.appType ? 'true' : null}">
@@ -22,19 +22,19 @@
                 </j:forEach>
             </select>
         </f:entry>
-        <div id="appBuildURI">
+        <div only-for-app-type="DEVICE_APP">
             <f:entry title="${%AppBuildURI}" field="appBuildURI">
                 <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
             </f:entry>
         </div>
     </f:section>
     <f:section title="${%ConfigureYourTests}">
-        <div id="browserTestType">
+        <div only-for-app-type="BROWSER">
             <f:entry title="${%TestType}" field="browserTestType">
                 <f:select />
             </f:entry>
         </div>
-        <div id="deviceTestType">
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
             <f:entry title="${%TestType}" field="deviceTestType">
                 <f:select />
             </f:entry>
@@ -42,11 +42,13 @@
         <f:entry title="${%TestPackageURI}" field="testPackageURI">
             <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
         </f:entry>
-        <f:entry title="${%VideoCapture}" field="videoCapture">
-            <f:checkbox default="true" />
-        </f:entry>
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
+            <f:entry title="${%VideoCapture}" field="videoCapture">
+                <f:checkbox default="true" />
+            </f:entry>
+        </div>
     </f:section>
-    <div id="browserSelector" name="browserSelector">
+    <div name="browserSelector" only-for-app-type="BROWSER">
         <f:section title="${%SelectBrowsers}">
             <f:entry title="${%BrowserNames}">
                 <select multiple="true" name="browserNames">
@@ -80,7 +82,7 @@
             </f:entry>
         </f:section>
     </div>
-    <div id="deviceSelector" name="deviceSelector">
+    <div name="deviceSelector" only-for-app-type="DEVICE_APP,DEVICE_WEB">
         <f:section title="${%SelectDevices}">
             <f:entry title="${%DeviceOperatingSystems}" field="deviceOses">
                 <f:textbox placeholder="14.6, 8.0.0, 10"
@@ -113,7 +115,7 @@
         <f:number min="1" default="2" value="${instance.select}" />
     </f:entry>
     <f:advanced>
-        <div id="deviceState" name="deviceState">
+        <div name="deviceState" only-for-app-type="DEVICE_APP,DEVICE_WEB">
             <f:entry title="${%DeviceRadios}" field="deviceRadios">
                 <div name="deviceRadios">
                     <f:checkbox title="${%WiFi}"
@@ -153,27 +155,35 @@
                 </div>
             </f:entry>
             <f:entry title="${%DevicePaths}" field="devicePaths">
-                <f:textbox name="hostMachinePaths" value="${instance.deviceState.hostMachinePaths}" />
-                <f:textbox name="androidPaths" value="${instance.deviceState.androidPaths}" />
+                <f:entry title="${%HostMachinePaths}" field="hostMachinePaths">
+                    <f:textbox placeholder="$WORKING_DIRECTORY, /tmp/"
+                               value="${instance.deviceState.hostMachinePaths}"
+                    />
+                </f:entry>
+                <f:entry title="${%AndroidPaths}" field="androidPaths">
+                    <f:textbox placeholder="/Android/data/org.application/files, /storage/sdcard0/Android/data/org.application/files/"
+                               value="${instance.deviceState.androidPaths}"
+                    />
+                </f:entry>
             </f:entry>
             <f:entry title="${%DeviceLocale}" field="deviceLocale">
-                <f:textbox value="${instance.deviceState.deviceLocale}" />
+                <f:textbox default="en_US" value="${instance.deviceState.deviceLocale}" />
             </f:entry>
             <f:entry title="${%NetworkProfile}" field="networkProfile">
                 <f:select default="${instance.deviceState.networkProfile}" />
             </f:entry>
         </div>
-        <div id="timeoutDevices">
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
             <f:entry title="${%TimeoutDevices}" field="timeoutDevices">
                 <f:number min="0" default="15" />
             </f:entry>
         </div>
-        <div id="timeoutBrowsers">
+        <div only-for-app-type="BROWSER">
             <f:entry title="${%TimeoutBrowsers}" field="timeoutBrowsers">
                 <f:number min="0" default="120" />
             </f:entry>
         </div>
-        <div id="testArgs">
+        <div only-for-app-type="BROWSER">
             <f:entry title="${%TestArgs}" field="testArgs">
                 <f:textbox placeholder="--spec tests/login-test.ts" />
             </f:entry>
@@ -183,8 +193,12 @@
         </f:entry>
     </f:advanced>
     <script>
-        function findElementById(parent, id) {
-            return parent.querySelector('[id=' + id + ']');
+        function findElementByName(parent, name) {
+            return parent.querySelector('[name=' + name + ']');
+        }
+
+        function findElementsByAttribute(parent, attribute) {
+            return parent.querySelectorAll('[' + attribute + ']');
         }
 
         function waitForElement(selector) {
@@ -208,43 +222,20 @@
         }
 
         function updateFormFields(pluginBody) {
-            const appType = findElementById(pluginBody, 'appType').value;
-
-            if (appType === 'BROWSER') {
-                findElementById(pluginBody, 'browserTestType').style.display = 'block';
-                findElementById(pluginBody, 'browserSelector').style.display = 'block';
-                findElementById(pluginBody, 'timeoutBrowsers').style.display = 'block';
-                findElementById(pluginBody, 'testArgs').style.display = 'block';
-
-                findElementById(pluginBody, 'deviceTestType').style.display = 'none';
-                findElementById(pluginBody, 'appBuildURI').style.display = 'none';
-                findElementById(pluginBody, 'deviceState').style.display = 'none';
-                findElementById(pluginBody, 'deviceSelector').style.display = 'none';
-                findElementById(pluginBody, 'timeoutDevices').style.display = 'none';
-            }
-            if (appType.includes('DEVICE')) {
-                findElementById(pluginBody, 'deviceTestType').style.display = 'block';
-                findElementById(pluginBody, 'deviceSelector').style.display = 'block';
-                findElementById(pluginBody, 'deviceState').style.display = 'block';
-                findElementById(pluginBody, 'timeoutDevices').style.display = 'block';
-
-                if (appType === 'DEVICE_APP') {
-                    findElementById(pluginBody, 'appBuildURI').style.display = 'block';
+            const appType = findElementByName(pluginBody, 'appType').value;
+            findElementsByAttribute(pluginBody, 'only-for-app-type').forEach((elem) => {
+                if (elem.getAttribute('only-for-app-type').split(',').includes(appType)) {
+                    elem.style.display = 'block';
                 } else {
-                    findElementById(pluginBody, 'appBuildURI').style.display = 'none';
+                    elem.style.display = 'none';
                 }
-
-                findElementById(pluginBody, 'browserTestType').style.display = 'none';
-                findElementById(pluginBody, 'browserSelector').style.display = 'none';
-                findElementById(pluginBody, 'timeoutBrowsers').style.display = 'none';
-                findElementById(pluginBody, 'testArgs').style.display = 'none';
-            }
+            })
         }
 
         function load() {
             waitForElement("div[descriptorid='com.testlio.plugins.jenkins.ScheduleAutomatedRunBuilder']").then((pluginBody) => {
                 updateFormFields(pluginBody);
-                findElementById(pluginBody, 'appType').addEventListener('change', function () {
+                findElementByName(pluginBody, 'appType').addEventListener('change', function () {
                     updateFormFields(pluginBody);
                 });
             })

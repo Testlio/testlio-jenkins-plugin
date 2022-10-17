@@ -31,6 +31,7 @@ public class BrowserSelector {
     }
 
     public String getFormattedBrowserNames() {
+        if (browserNames.isEmpty()) return "-";
         return browserNames.stream().map(BrowserNameEnum::getName).collect(Collectors.joining(", "));
     }
 
@@ -43,6 +44,7 @@ public class BrowserSelector {
     }
 
     public String getFormattedPlatformNames() {
+        if (platformNames.isEmpty()) return "-";
         return platformNames.stream().map(PlatformNameEnum::getName).collect(Collectors.joining(", "));
     }
 
@@ -51,6 +53,7 @@ public class BrowserSelector {
     }
 
     public String getFormattedBrowserVersions() {
+        if (browserVersions.isEmpty()) return "-";
         return String.join(", ", browserVersions);
     }
 

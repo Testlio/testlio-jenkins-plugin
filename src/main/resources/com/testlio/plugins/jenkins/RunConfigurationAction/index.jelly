@@ -47,9 +47,11 @@
                 <div>
                     <b>${%TestPackageURI}:</b> <a href="${it.testPackageURI}" target="_blank" style="margin-left:5px;">${it.testPackageURI}</a>
                 </div>
-                <div>
-                    <b>${%VideoCapture}:</b> ${it.videoCapture ? 'Yes' : 'No'}
-                </div>
+                <j:if test="${it.appType != 'BROWSER'}">
+                    <div>
+                        <b>${%VideoCapture}:</b> ${it.videoCapture ? 'Yes' : 'No'}
+                    </div>
+                </j:if>
             </section>
             <section>
                 <j:if test="${it.appType == 'BROWSER'}">
