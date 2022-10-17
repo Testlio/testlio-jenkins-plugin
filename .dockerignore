@@ -1,0 +1,16 @@
+# Git
+.git*
+.github/
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Other
+LICENSE
+LICENSE.md
+README.md
+
+# Build
+target/
+work/
