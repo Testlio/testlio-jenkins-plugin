@@ -1,18 +1,19 @@
 package com.testlio.plugins.jenkins.enums;
 
+import lombok.Getter;
+
+@Getter
 public enum AppTypeEnum {
-    DEVICE_APP("Mobile App"),
-    DEVICE_WEB("Mobile Web"),
-    BROWSER("Desktop Web");
+    DEVICE_APP("Mobile App","OTHER"),
+    DEVICE_WEB("Mobile Web", "WEB"),
+    BROWSER("Desktop Web", "WEB");
 
     private final String name;
+    private final String value;
 
-    AppTypeEnum(String name) {
+    AppTypeEnum(String name, String value) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
+        this.value = value;
     }
 }
 
