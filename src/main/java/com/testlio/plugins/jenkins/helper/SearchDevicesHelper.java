@@ -36,7 +36,9 @@ public class SearchDevicesHelper {
     list.put("HIGHLY_AVAILABLE");
     list.put("AVAILABLE");
     searchDeviceRequest.put("availability", list);
-    searchDeviceRequest.put("platforms", config.getDevicePlatformType().getName());
+    JSONArray platformList = new JSONArray();
+    platformList.put(config.getDevicePlatformType().getName());
+    searchDeviceRequest.put("platforms", platformList);
 
     devicesDTO = (DevicesDTO) restClient.post("/automated-test-run/v1/devices/search", searchDeviceRequest, DevicesDTO.class);
     return devicesDTO;

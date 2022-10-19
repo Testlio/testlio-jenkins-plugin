@@ -8,7 +8,6 @@ import com.testlio.plugins.jenkins.dto.ProjectDTO;
 import com.testlio.plugins.jenkins.dto.ResponseHrefDTO;
 import com.testlio.plugins.jenkins.dto.RunConfigurationDTO;
 import com.testlio.plugins.jenkins.dto.RunDTO;
-import com.testlio.plugins.jenkins.enums.AppTypeEnum;
 import com.testlio.plugins.jenkins.utils.RestClient;
 import hudson.model.TaskListener;
 import org.apache.commons.lang.StringUtils;
@@ -36,7 +35,7 @@ public class ScheduleAutomatedRunHelper {
     return automatedRun;
   }
 
-  public static void createAndUpdateAutomatedRunConfiguration(TaskListener listener, RestClient restClient, RunDTO automatedRun, RunConfigurationAction config) {
+  public static void createAndUpdateAutomatedRunConfiguration(TaskListener listener, RestClient restClient, RunDTO automatedRun, RunConfigurationAction config, boolean isBrowser) {
     listener.getLogger().println("Step 2.1: Search for automated run configuration");
     JSONObject searchRunConfigurationRequest = new JSONObject();
     searchRunConfigurationRequest.put("runHrefs", Collections.singletonList(automatedRun.getHref()));
@@ -44,13 +43,46 @@ public class ScheduleAutomatedRunHelper {
 
 
     JSONObject updateRunConfigRequest = new JSONObject();
-    updateRunConfigRequest.put("deviceTimeoutInMinutes", config.getTimeoutBrowsers());
-    updateRunConfigRequest.put("deviceTestType", config.getBrowserTestType());
-    if (StringUtils.isNotBlank(config.getTestArgs())) {
-      updateRunConfigRequest.put("executionConfiguration", new JSONObject().put("testArgs", config.getTestArgs()));
+    updateRunConfigRequest.put("type", isBrowser ? "BROWSER" : "DEVICE");
+    if (isBrowser) {
+      updateRunConfigRequest.put("deviceAppType", config.getAppType().getValue());
+      updateRunConfigRequest.put("deviceTestType", config.getBrowserTestType());
+      updateRunConfigRequest.put("deviceTimeoutInMinutes", config.getTimeoutBrowsers());
+      if (StringUtils.isNotBlank(config.getTestArgs())) {
+        updateRunConfigRequest.put("executionConfiguration", new JSONObject().put("testArgs", config.getTestArgs()));
+      }
     }
-    updateRunConfigRequest.put("deviceAppType", config.getAppType().getValue());
-    updateRunConfigRequest.put("type", config.getAppType().equals(AppTypeEnum.BROWSER) ? "BROWSER" : "DEVICE");
+    else {
+      updateRunConfigRequest.put("deviceAppType", config.getDevicePlatformType().getName());
+      updateRunConfigRequest.put("deviceTestType", config.getDeviceTestType().toString());
+
+      JSONObject configuration = new JSONObject();
+      JSONObject radioConfigs = new JSONObject();
+      radioConfigs.put("bluetooth", config.getDeviceState().getDeviceRadios().getBluetooth());
+      radioConfigs.put("gps", config.getDeviceState().getDeviceRadios().getGps());
+      radioConfigs.put("nfc", config.getDeviceState().getDeviceRadios().getNfc());
+      radioConfigs.put("wifi", config.getDeviceState().getDeviceRadios().getWifi());
+      configuration.put("radios", radioConfigs);
+      if(config.getDeviceState().getDeviceLocation().getLatitude() != null && config.getDeviceState().getDeviceLocation().getLongitude() != null) {
+        JSONObject locationConfig = new JSONObject();
+        locationConfig.put("latitude", config.getDeviceState().getDeviceLocation().getLatitude());
+        locationConfig.put("longitude", config.getDeviceState().getDeviceLocation().getLongitude());
+        configuration.put("location", locationConfig);
+      }
+
+      if (StringUtils.isNotBlank(config.getDeviceState().getDeviceLocale())) {
+        configuration.put("locale", config.getDeviceState().getDeviceLocale());
+      }
+      configuration.put("networkProfileName", config.getDeviceState().getNetworkProfile().getName());
+
+      updateRunConfigRequest.put("configuration", configuration);
+
+      JSONObject executionConfiguration = new JSONObject();
+      executionConfiguration.put("jobTimeoutMinutes", config.getTimeoutDevices());
+      executionConfiguration.put("videoCapture", config.getVideoCapture());
+      updateRunConfigRequest.put("executionConfiguration", executionConfiguration);
+    }
+
     restClient.put(runConfigurationDTO.getData().get(0).getHref(), updateRunConfigRequest, null);
   }
 

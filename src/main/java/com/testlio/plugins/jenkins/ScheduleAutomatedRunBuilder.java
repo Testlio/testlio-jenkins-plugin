@@ -189,7 +189,7 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     RunDTO automatedRun = createNewAutomatedRun(listener, restClient, config);
 
     listener.getLogger().println("Step 2: Create and Update automated run configuration");
-    createAndUpdateAutomatedRunConfiguration(listener, restClient, automatedRun, config);
+    createAndUpdateAutomatedRunConfiguration(listener, restClient, automatedRun, config, isBrowser());
 
     listener.getLogger().println("Step 3: Create automated run plan");
     ResponseHrefDTO automatedTestPlan = (ResponseHrefDTO) restClient.post(automatedRun.getPlans().getHref(), new JSONObject(), ResponseHrefDTO.class);
