@@ -43,6 +43,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.ServletException;
 import java.io.IOException;
 
+import static com.testlio.plugins.jenkins.helper.PollResultHelper.pollResults;
 import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.attachDevices;
 import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.createAndUpdateAutomatedRunConfiguration;
 import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.createNewAutomatedRun;
@@ -54,7 +55,6 @@ import static com.testlio.plugins.jenkins.helper.UploadHelper.uploadTestPackage;
 
 @Component
 public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildStep {
-
 
   public final Integer projectId;
 
@@ -154,24 +154,7 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
       buildFile = FieldValidations.downloadFileFromURL(appBuildURI);
     }
 
-    if (isBrowser()) {
-      config.setBrowserTestType(browserTestType);
-      config.setBrowserSelector(browserSelector);
-      config.setTimeoutBrowsers(timeoutBrowsers);
-    }
-    else {
-      config.setAppBuildURI(appBuildURI);
-      config.setDeviceTestType(deviceTestType);
-      config.setDeviceSelector(deviceSelector);
-      config.setDeviceState(deviceState);
-      config.setTimeoutDevices(timeoutDevices);
-    }
-
-    if (testArgs != null) {
-      config.setTestArgs(testArgs);
-    }
-
-    run.addAction(config);
+    updateJenkinsRunConfigurations(run, config);
 
     listener.getLogger().println("Starting process to create an automation run...");
     BrowsersDTO browsersDTO = null;
@@ -207,6 +190,28 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     scheduleAutomatedRun(listener, restClient, automatedRun, config);
 
     listener.getLogger().println("Step 8. Wait for results");
+    pollResults(listener, restClient, automatedRun, config);
+  }
+
+  private void updateJenkinsRunConfigurations(Run<?, ?> run, RunConfigurationAction config) {
+    if (isBrowser()) {
+      config.setBrowserTestType(browserTestType);
+      config.setBrowserSelector(browserSelector);
+      config.setTimeoutBrowsers(timeoutBrowsers);
+    }
+    else {
+      config.setAppBuildURI(appBuildURI);
+      config.setDeviceTestType(deviceTestType);
+      config.setDeviceSelector(deviceSelector);
+      config.setDeviceState(deviceState);
+      config.setTimeoutDevices(timeoutDevices);
+    }
+
+    if (StringUtils.isNotBlank(testArgs)) {
+      config.setTestArgs(testArgs);
+    }
+
+    run.addAction(config);
   }
 
   private boolean isTestTypeDevice() {
