@@ -1,16 +1,15 @@
 package com.testlio.plugins.jenkins;
 
-import com.testlio.plugins.jenkins.dto.AttachmentDTO;
-import com.testlio.plugins.jenkins.dto.AutomatedRunPlanDTO;
 import com.testlio.plugins.jenkins.dto.BrowsersDTO;
-import com.testlio.plugins.jenkins.dto.DevicePoolDTO;
-import com.testlio.plugins.jenkins.dto.RunConfigurationDTO;
+import com.testlio.plugins.jenkins.dto.DevicesDTO;
+import com.testlio.plugins.jenkins.dto.FileDTO;
+import com.testlio.plugins.jenkins.dto.ResponseHrefDTO;
 import com.testlio.plugins.jenkins.dto.RunDTO;
-import com.testlio.plugins.jenkins.dto.UploadDTO;
 import com.testlio.plugins.jenkins.enums.AppTypeEnum;
 import com.testlio.plugins.jenkins.enums.BrowserNameEnum;
 import com.testlio.plugins.jenkins.enums.BrowserTestTypeEnum;
 import com.testlio.plugins.jenkins.enums.DeviceFormFactorEnum;
+import com.testlio.plugins.jenkins.enums.DevicePlatformEnum;
 import com.testlio.plugins.jenkins.enums.DeviceTestTypeEnum;
 import com.testlio.plugins.jenkins.enums.NetworkProfileEnum;
 import com.testlio.plugins.jenkins.enums.PlatformNameEnum;
@@ -18,6 +17,7 @@ import com.testlio.plugins.jenkins.models.BrowserSelector;
 import com.testlio.plugins.jenkins.models.DeviceSelector;
 import com.testlio.plugins.jenkins.models.DeviceState;
 import com.testlio.plugins.jenkins.utils.RestClient;
+import com.testlio.plugins.jenkins.validation.FieldValidations;
 import hudson.EnvVars;
 import hudson.Extension;
 import hudson.FilePath;
@@ -38,25 +38,19 @@ import org.json.JSONObject;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StreamUtils;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.ServletException;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
+
+import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.attachDevices;
+import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.createAndUpdateAutomatedRunConfiguration;
+import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.createNewAutomatedRun;
+import static com.testlio.plugins.jenkins.helper.ScheduleAutomatedRunHelper.scheduleAutomatedRun;
+import static com.testlio.plugins.jenkins.helper.SearchDevicesHelper.searchBrowsers;
+import static com.testlio.plugins.jenkins.helper.SearchDevicesHelper.searchDevices;
+import static com.testlio.plugins.jenkins.helper.UploadHelper.uploadBuild;
+import static com.testlio.plugins.jenkins.helper.UploadHelper.uploadTestPackage;
 
 @Component
 public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildStep {
@@ -69,6 +63,7 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
   public final String automatedTestRunCollectionGuid;
 
   public final AppTypeEnum appType;
+  public final DevicePlatformEnum devicePlatformType;
 
   public final String testPackageURI;
 
@@ -77,10 +72,8 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
   public final Integer select;
 
   public final Boolean waitForResults;
-  private static String BASE_URI = "http://local.testlio:8181";
 
   // Optional attributes
-
   @DataBoundSetter
   public String testArgs;
 
@@ -111,7 +104,7 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
   public Integer timeoutDevices = null;
 
   @DataBoundConstructor
-  public ScheduleAutomatedRunBuilder(Integer projectId, String testRunCollectionGuid, String automatedTestRunCollectionGuid, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Boolean waitForResults) {
+  public ScheduleAutomatedRunBuilder(Integer projectId, String testRunCollectionGuid, String automatedTestRunCollectionGuid, AppTypeEnum appType, String testPackageURI, Boolean videoCapture, Integer select, Boolean waitForResults, DevicePlatformEnum devicePlatformType) {
     this.projectId = projectId;
     this.testRunCollectionGuid = testRunCollectionGuid;
     this.automatedTestRunCollectionGuid = automatedTestRunCollectionGuid;
@@ -120,20 +113,22 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
     this.videoCapture = videoCapture;
     this.select = select;
     this.waitForResults = waitForResults;
+    this.devicePlatformType = devicePlatformType;
   }
 
+  private boolean isIOS() {
+    return devicePlatformType != null && devicePlatformType.equals(DevicePlatformEnum.IOS);
+  }
+
+  private String getAppType() {
+    return appType.equals(AppTypeEnum.BROWSER) ? "BROWSER" : "DEVICE";
+  }
 
   @SneakyThrows
   @Override
   public void perform(Run<?, ?> run, FilePath workspace, EnvVars env, Launcher launcher, TaskListener listener)
           throws InterruptedException, IOException {
     listener.getLogger().println(this);
-
-    if(StringUtils.isBlank(env.get("accessToken"))){
-      throw new Error("Access token is missing, please configure it in your global configuration");
-    }
-
-    RestClient restClient = new RestClient(env.get("accessToken"), listener);
 
     RunConfigurationAction config = new RunConfigurationAction(
             projectId,
@@ -143,8 +138,21 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
             testPackageURI,
             videoCapture,
             select,
-            waitForResults
+            waitForResults,
+            devicePlatformType
     );
+
+    final String accessToken = env.get("accessToken");
+
+    FieldValidations.validateAccessToken(accessToken);
+    final RestClient restClient = new RestClient(accessToken, listener);
+
+    final FileDTO testPackageFile = FieldValidations.downloadFileFromURL(testPackageURI);
+
+    FileDTO buildFile = null;
+    if (isTestTypeDevice()) {
+      buildFile = FieldValidations.downloadFileFromURL(appBuildURI);
+    }
 
     if (isBrowser()) {
       config.setBrowserTestType(browserTestType);
@@ -167,133 +175,42 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
 
     listener.getLogger().println("Starting process to create an automation run...");
     BrowsersDTO browsersDTO = null;
+    DevicesDTO devicesDTO = null;
     if (isBrowser()) {
-      JSONObject request = new JSONObject();
-      request.put("browserNames", config.getBrowserSelector().getBrowserNames());
-      request.put("platformNames", config.getBrowserSelector().getPlatformNames());
-      request.put("versions", config.getBrowserSelector().getBrowserVersions());
-
-      browsersDTO = (BrowsersDTO) restClient.post("/automated-test-run/v1/browsers/search", request, BrowsersDTO.class);
+      listener.getLogger().println("Step 0: Search browsers");
+      browsersDTO = searchBrowsers(config, restClient);
+    }
+    else {
+      listener.getLogger().println("Step 0: Search devices");
+      devicesDTO = searchDevices(config, restClient);
     }
 
     listener.getLogger().println("Step 1: Create a new automated run");
-    JSONObject createRunRequest = new JSONObject();
-    createRunRequest.put("startAt", Instant.now().toString());
-    createRunRequest.put("projectId", projectId);
-    createRunRequest.put("type", "Automated");
-    createRunRequest.put("sourceType", "testlio_cli");
-
-    RunDTO automatedRun = (RunDTO) restClient.post("/test-run/v1/collections/" + testRunCollectionGuid + "/runs", createRunRequest, RunDTO.class);
-    listener.getLogger().println("Step 1.1: Update automated run name");
-    JSONObject updateRunRequest = new JSONObject();
-    updateRunRequest.put("name", "JENKINS : " + automatedRun.getName());
-    automatedRun = (RunDTO) restClient.put(automatedRun.getHref(), updateRunRequest, RunDTO.class);
-
+    RunDTO automatedRun = createNewAutomatedRun(listener, restClient, config);
 
     listener.getLogger().println("Step 2: Create and Update automated run configuration");
-    listener.getLogger().println("Step 2.1: Search for automated run configuration");
-    JSONObject searchRunConfigurationRequest = new JSONObject();
-    searchRunConfigurationRequest.put("runHrefs", Collections.singletonList(automatedRun.getHref()));
-    RunConfigurationDTO runConfigurationDTO = (RunConfigurationDTO) restClient.post("/automated-test-run/v1/collections/" + automatedTestRunCollectionGuid + "/search/run-configurations", searchRunConfigurationRequest, RunConfigurationDTO.class);
-
-
-    JSONObject updateRunConfigRequest = new JSONObject();
-    updateRunConfigRequest.put("deviceTimeoutInMinutes", timeoutBrowsers);
-    updateRunConfigRequest.put("deviceTestType", browserTestType);
-    if (StringUtils.isNotBlank(testArgs)) {
-      updateRunConfigRequest.put("executionConfiguration", new JSONObject().put("testArgs", testArgs));
-    }
-    updateRunConfigRequest.put("deviceAppType", appType.getValue());
-    updateRunConfigRequest.put("type", isBrowser() ? "BROWSER" : "DEVICE");
-    restClient.put(runConfigurationDTO.getData().get(0).getHref(), updateRunConfigRequest, null);
+    createAndUpdateAutomatedRunConfiguration(listener, restClient, automatedRun, config);
 
     listener.getLogger().println("Step 3: Create automated run plan");
-    AutomatedRunPlanDTO automatedRunPlanDTO = (AutomatedRunPlanDTO) restClient.post(automatedRun.getPlans().getHref(), new JSONObject(), AutomatedRunPlanDTO.class);
+    ResponseHrefDTO automatedTestPlan = (ResponseHrefDTO) restClient.post(automatedRun.getPlans().getHref(), new JSONObject(), ResponseHrefDTO.class);
 
-    listener.getLogger().println("Skipping the step as no build is required for Web testing");
+    listener.getLogger().println("Step 4: Upload test build");
+    uploadBuild(listener, restClient, buildFile, automatedTestPlan, isTestTypeDevice(), config, isIOS());
 
     listener.getLogger().println("Step 5: Upload test package");
-    listener.getLogger().println("Step 5.1: Get upload URL");
-    JSONObject uploadServiceRequest = new JSONObject();
-    uploadServiceRequest.put("prefix", "automated-run-attachment");
-    UploadDTO uploadDTO = (UploadDTO) restClient.post("/upload/v1/files", uploadServiceRequest, UploadDTO.class);
-
-    listener.getLogger().println("Step 5.2: Upload test package");
-    listener.getLogger().println("Uploading test package to AWS");
-
-
-    RestTemplate restTemplate = new RestTemplate();
-    SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-    requestFactory.setBufferRequestBody(false);
-    restTemplate.setRequestFactory(requestFactory);
-
-    RequestCallback requestCallback = request -> request
-            .getHeaders()
-            .setAccept(Arrays.asList(MediaType.APPLICATION_OCTET_STREAM, MediaType.ALL));
-
-
-    final String[] filename = new String[1];
-    File file = restTemplate.execute(testPackageURI, HttpMethod.GET, requestCallback, clientHttpResponse -> {
-      listener.getLogger().println(clientHttpResponse.getHeaders());
-      filename[0] = clientHttpResponse.getHeaders().getContentDisposition().getFilename();
-      File ret = File.createTempFile("testPackage", "tmp");
-      StreamUtils.copy(clientHttpResponse.getBody(), new FileOutputStream(ret));
-      return ret;
-    });
-
-
-    file.deleteOnExit();
-
-    HttpEntity<FileSystemResource> requestEntity = new HttpEntity<>(new FileSystemResource(file));
-    ResponseEntity e = restTemplate.exchange(uploadDTO.getPut().getHref().toURI(), HttpMethod.PUT, requestEntity, Map.class);
-
-
-    JSONObject createAttachmentRequest = new JSONObject();
-    createAttachmentRequest.put("name", filename[0] != null ? filename[0] : "testPackage.zip");
-    createAttachmentRequest.put("fileType", "application/zip");
-    createAttachmentRequest.put("attachmentType", "TestPackage");
-    createAttachmentRequest.put("url", uploadDTO.getGet().getHref().toURI().toString());
-    createAttachmentRequest.put("size", file.length());
-    AttachmentDTO attachmentDTO = (AttachmentDTO) restClient.post("/automated-test-run/v1/collections/" + automatedTestRunCollectionGuid + "/attachments", createAttachmentRequest, AttachmentDTO.class);
-
-
-    listener.getLogger().println("Step 5.4: Attach test package attachment to plan");
-    JSONObject attachRequest = new JSONObject();
-    attachRequest.put("attachmentHref", attachmentDTO.getHref());
-    restClient.post(automatedRunPlanDTO.getHref() + "/attachments", attachRequest, null);
-
+    uploadTestPackage(listener, restClient, testPackageFile, automatedTestPlan, config);
 
     listener.getLogger().println("Step 6: Devices");
-    listener.getLogger().println("Step 6.1: Create Device pool");
-    JSONObject createDevicePool = new JSONObject();
-    createDevicePool.put("name", "Automated device");
-    createDevicePool.put("hidden", true);
-    createDevicePool.put("withoutDeviceAssignment", true);
-    createDevicePool.put("isGroup", false);
-    createDevicePool.put("isMultipleDevices", false);
-    DevicePoolDTO devicePoolDTO = (DevicePoolDTO) restClient.post("/test-run/v1/collections/" + testRunCollectionGuid + "/device-pools", createDevicePool, DevicePoolDTO.class);
-
-    final String devicePoolFilterHref = devicePoolDTO.getHref() + "/filters";
-    browsersDTO.getData().stream().limit(select).forEach(b -> {
-      JSONObject request = new JSONObject();
-      request.put("automatedBrowsers", Collections.singletonList(new JSONObject().put("automatedBrowserGuid", b.getId())));
-      restClient.post(devicePoolFilterHref, request, null);
-    });
-
-    listener.getLogger().println("Step 6.3: Attaching device pool filter to automated run plan");
-    JSONObject request = new JSONObject();
-    request.put("jobsCount", 1);
-    request.put("devicePoolGuid", devicePoolDTO.getGuid());
-    restClient.post(automatedRunPlanDTO.getHref() + "/plan-device-pools", request, null);
+    attachDevices(listener, restClient, browsersDTO, devicesDTO, automatedTestPlan, config, isBrowser());
 
     listener.getLogger().println("Step 7. Schedule run! 🚀");
-    JSONObject scheduleRunRequest = new JSONObject();
-    scheduleRunRequest.put("status", "inProgress");
-    scheduleRunRequest.put("projectId", projectId);
-    restClient.put(automatedRun.getHref(), scheduleRunRequest, null);
+    scheduleAutomatedRun(listener, restClient, automatedRun, config);
 
-    // TODO Implement automated run scheduling logic here
-    listener.getLogger().println("Plugin works!");
+    listener.getLogger().println("Step 8. Wait for results");
+  }
+
+  private boolean isTestTypeDevice() {
+    return StringUtils.equals(getAppType(), "DEVICE") && !StringUtils.equals(appType.getValue(), "WEB");
   }
 
   private boolean isBrowser() {
@@ -339,6 +256,14 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
       ListBoxModel items = new ListBoxModel();
       for (AppTypeEnum appTypeEnum : AppTypeEnum.values()) {
         items.add(appTypeEnum.getName(), appTypeEnum.toString());
+      }
+      return items;
+    }
+
+    public ListBoxModel getDevicePlatformTypes() {
+      ListBoxModel items = new ListBoxModel();
+      for (DevicePlatformEnum devicePlatformEnum : DevicePlatformEnum.values()) {
+        items.add(devicePlatformEnum.getName(), devicePlatformEnum.toString());
       }
       return items;
     }

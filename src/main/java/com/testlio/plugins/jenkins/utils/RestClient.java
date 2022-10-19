@@ -27,9 +27,18 @@ public class RestClient {
     headers.setBearerAuth(accessToken);
   }
 
+  public <T> Object get(String url, Class<T> typeClass) {
+    listener.getLogger().println("Making a GET Request, Request Url:" + url);
+    ResponseEntity<String> response = getRestTemplate().exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+    listener.getLogger().println("Response:" + response.getStatusCode());
+    if (typeClass == null) {
+      return null;
+    }
+    return new Gson().fromJson(response.getBody(), typeClass);
+  }
+
   public <T> Object post(String url, JSONObject request, Class<T> typeClass) {
-    listener.getLogger().println("Making a POST Request");
-    listener.getLogger().println("Request Url:" + url);
+    listener.getLogger().println("Making a POST Request, Request Url:" + url);
     listener.getLogger().println("Request Payload:" + request.toString());
     ResponseEntity<String> response = getRestTemplate().exchange(url, HttpMethod.POST, new HttpEntity<>(request.toString(), headers), String.class);
     listener.getLogger().println("Response:" + response.getStatusCode());
@@ -40,8 +49,7 @@ public class RestClient {
   }
 
   public <T> Object put(String url, JSONObject request, Class<T> typeClass) {
-    listener.getLogger().println("Making a PUT Request");
-    listener.getLogger().println("Request Url:" + url);
+    listener.getLogger().println("Making a PUT Request, Request Url:" + url);
     listener.getLogger().println("Request Payload:" + request.toString());
     ResponseEntity<String> response = getRestTemplate().exchange(url, HttpMethod.PUT, new HttpEntity<>(request.toString(), headers), String.class);
     listener.getLogger().println("Response:" + response.getStatusCode());

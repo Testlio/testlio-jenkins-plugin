@@ -90,20 +90,21 @@ public class ScheduleAutomatedRunBuilderTest {
     }*/
 
     private ScheduleAutomatedRunBuilder createBuilderMock() {
-        ScheduleAutomatedRunBuilder scheduleAutomatedRunBuilder = new ScheduleAutomatedRunBuilder(
-                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid,
-                appType, testPackageURI, videoCapture, select, waitForResults
-        );
-        scheduleAutomatedRunBuilder.browserSelector = browserSelector;
-        scheduleAutomatedRunBuilder.deviceSelector = deviceSelector;
-        scheduleAutomatedRunBuilder.deviceState = deviceState;
-        scheduleAutomatedRunBuilder.browserTestType = browserTestType;
-        scheduleAutomatedRunBuilder.deviceTestType = deviceTestType;
-        scheduleAutomatedRunBuilder.appBuildURI = appBuildURI;
-        scheduleAutomatedRunBuilder.testArgs = testArgs;
-        scheduleAutomatedRunBuilder.timeoutBrowsers = timeoutBrowsers;
-        scheduleAutomatedRunBuilder.timeoutDevices = timeoutDevices;
-        return scheduleAutomatedRunBuilder;
+//        ScheduleAutomatedRunBuilder scheduleAutomatedRunBuilder = new ScheduleAutomatedRunBuilder(
+//                projectId, testRunCollectionGuid, automatedTestRunCollectionGuid,
+//                appType, testPackageURI, videoCapture, select, waitForResults
+//        );
+//        scheduleAutomatedRunBuilder.browserSelector = browserSelector;
+//        scheduleAutomatedRunBuilder.deviceSelector = deviceSelector;
+//        scheduleAutomatedRunBuilder.deviceState = deviceState;
+//        scheduleAutomatedRunBuilder.browserTestType = browserTestType;
+//        scheduleAutomatedRunBuilder.deviceTestType = deviceTestType;
+//        scheduleAutomatedRunBuilder.appBuildURI = appBuildURI;
+//        scheduleAutomatedRunBuilder.testArgs = testArgs;
+//        scheduleAutomatedRunBuilder.timeoutBrowsers = timeoutBrowsers;
+//        scheduleAutomatedRunBuilder.timeoutDevices = timeoutDevices;
+//        return scheduleAutomatedRunBuilder;
+        return null;
     }
 
 }

@@ -23,6 +23,18 @@
             </select>
         </f:entry>
         <div only-for-app-type="DEVICE_APP">
+            <f:entry title="${%PlatformType}" field="devicePlatformType">
+                <select name="devicePlatformType" >
+                    <j:forEach var="devicePlatformType" items="${descriptor.devicePlatformTypes}">
+                        <option value="${devicePlatformType.value}"
+                                selected="${devicePlatformType.value == instance.devicePlatformType ? 'true' : null}">
+                            ${devicePlatformType.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+        </div>
+        <div only-for-app-type="DEVICE_APP">
             <f:entry title="${%AppBuildURI}" field="appBuildURI">
                 <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
             </f:entry>
