@@ -1,14 +1,246 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-    <f:entry title="${%TestConfig}" field="testConfig">
-        <f:textbox />
-    </f:entry>
-    <f:entry title="${%ProjectConfig}" field="projectConfig">
-        <f:textbox />
+    <f:section title="${%Project}">
+        <f:entry title="${%ProjectId}" field="projectId">
+            <f:number min="0" />
+        </f:entry>
+        <f:entry title="${%TestRunCollectionGuid}" field="testRunCollectionGuid">
+            <f:textbox placeholder="0b9bc46e-7695-4486-b9af-5cf2cfe1a71b" />
+        </f:entry>
+        <f:entry title="${%AutomatedTestRunCollectionGuid}" field="automatedTestRunCollectionGuid">
+            <f:textbox placeholder="0b9bc46e-7695-4486-b9af-5cf2cfe1a71b" />
+        </f:entry>
+    </f:section>
+    <f:section title="${%ChooseYourApplication}">
+        <f:entry title="${%AppType}" field="appType">
+            <select name="appType" >
+                <j:forEach var="appType" items="${descriptor.appTypes}">
+                    <option value="${appType.value}"
+                            selected="${appType.value == instance.appType ? 'true' : null}">
+                        ${appType.name}
+                    </option>
+                </j:forEach>
+            </select>
+        </f:entry>
+        <div only-for-app-type="DEVICE_APP">
+            <f:entry title="${%AppBuildURI}" field="appBuildURI">
+                <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
+            </f:entry>
+        </div>
+    </f:section>
+    <f:section title="${%ConfigureYourTests}">
+        <div only-for-app-type="BROWSER">
+            <f:entry title="${%TestType}" field="browserTestType">
+                <f:select />
+            </f:entry>
+        </div>
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
+            <f:entry title="${%TestType}" field="deviceTestType">
+                <f:select />
+            </f:entry>
+        </div>
+        <f:entry title="${%TestPackageURI}" field="testPackageURI">
+            <f:textbox placeholder="https://drive.google.com/uc?export=download&amp;id=1hHdZrShOzfUV8Ua9SxJ4UFp7Hg3_l-R5" />
+        </f:entry>
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
+            <f:entry title="${%VideoCapture}" field="videoCapture">
+                <f:checkbox default="true" />
+            </f:entry>
+        </div>
+    </f:section>
+    <div name="browserSelector" only-for-app-type="BROWSER">
+        <f:section title="${%SelectBrowsers}">
+            <f:entry title="${%BrowserNames}">
+                <select multiple="true" name="browserNames">
+                    <j:forEach var="browserName" items="${descriptor.browserNames}">
+                        <option value="${browserName.value}"
+                                selected="${instance.browserSelector.browserNameStrings.contains(browserName.value) ? 'true' : null}">
+                            ${browserName.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+            <f:entry title="${%BrowserVersions}">
+                <select multiple="true" name="browserVersions">
+                    <j:forEach var="browserVersion" items="${descriptor.browserVersions}">
+                        <option value="${browserVersion.value}"
+                                selected="${instance.browserSelector.browserVersions.contains(browserVersion.value) ? 'true' : null}">
+                            ${browserVersion.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+            <f:entry title="${%PlatformNames}">
+                <select multiple="true" name="platformNames">
+                    <j:forEach var="platformName" items="${descriptor.platformNames}">
+                        <option value="${platformName.value}"
+                                selected="${instance.browserSelector.platformNameStrings.contains(platformName.value) ? 'true' : null}">
+                            ${platformName.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+        </f:section>
+    </div>
+    <div name="deviceSelector" only-for-app-type="DEVICE_APP,DEVICE_WEB">
+        <f:section title="${%SelectDevices}">
+            <f:entry title="${%DeviceOperatingSystems}" field="deviceOses">
+                <f:textbox placeholder="14.6, 8.0.0, 10"
+                           value="${instance.deviceSelector.deviceOses}"
+                />
+            </f:entry>
+            <f:entry title="${%DeviceManufacturers}" field="deviceManufacturers">
+                <f:textbox placeholder="Samsung, Google, LG"
+                           value="${instance.deviceSelector.deviceManufacturers}"
+                />
+            </f:entry>
+            <f:entry title="${%DeviceNames}" field="deviceNames">
+                <f:textbox placeholder="Samsung Galaxy A7, Sony Xperia XZ1, LG Stylo 5"
+                           value="${instance.deviceSelector.deviceNames}"
+                />
+            </f:entry>
+            <f:entry title="${%DeviceFormFactors}">
+                <select multiple="true" name="deviceFormFactors">
+                    <j:forEach var="deviceFormFactor" items="${descriptor.deviceFormFactors}">
+                        <option value="${deviceFormFactor.value}"
+                                selected="${instance.deviceSelector.deviceFormFactorStrings.contains(deviceFormFactor.value) ? 'true' : null}">
+                            ${deviceFormFactor.name}
+                        </option>
+                    </j:forEach>
+                </select>
+            </f:entry>
+        </f:section>
+    </div>
+    <f:entry title="${%Select}" field="select">
+        <f:number min="1" default="2" value="${instance.select}" />
     </f:entry>
     <f:advanced>
-        <f:entry title="${%TestArgs}" field="testArgs">
-            <f:textbox />
+        <div name="deviceState" only-for-app-type="DEVICE_APP,DEVICE_WEB">
+            <f:entry title="${%DeviceRadios}" field="deviceRadios">
+                <div name="deviceRadios">
+                    <f:checkbox title="${%WiFi}"
+                                name="wifi"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.wifi ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%Bluetooth}"
+                                name="bluetooth"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.bluetooth ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%GPS}"
+                                name="gps"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.gps ? 'true' : null) : 'true'}"
+                    />
+                    <f:checkbox title="${%NFC}"
+                                name="nfc"
+                                default="${instance != null ? (instance.deviceState.deviceRadios.nfc ? 'true' : null) : 'true'}"
+                    />
+                </div>
+            </f:entry>
+            <f:entry title="${%DeviceLocation}" field="deviceLocation">
+                <div name="deviceLocation">
+                    <input type="number"
+                           name="my.longitude"
+                           placeholder="24.753574"
+                           step="0.00001"
+                           min="0"
+                           value="${instance.deviceState.deviceLocation.longitude}"
+                    />
+                    <input type="number"
+                           name="my.latitude"
+                           placeholder="59.436962"
+                           step="0.00001"
+                           min="0"
+                           value="${instance.deviceState.deviceLocation.latitude}"
+                    />
+                </div>
+            </f:entry>
+            <f:entry title="${%DevicePaths}" field="devicePaths">
+                <f:entry title="${%HostMachinePaths}" field="hostMachinePaths">
+                    <f:textbox placeholder="$WORKING_DIRECTORY, /tmp/"
+                               value="${instance.deviceState.hostMachinePaths}"
+                    />
+                </f:entry>
+                <f:entry title="${%AndroidPaths}" field="androidPaths">
+                    <f:textbox placeholder="/Android/data/org.application/files, /storage/sdcard0/Android/data/org.application/files/"
+                               value="${instance.deviceState.androidPaths}"
+                    />
+                </f:entry>
+            </f:entry>
+            <f:entry title="${%DeviceLocale}" field="deviceLocale">
+                <f:textbox default="en_US" value="${instance.deviceState.deviceLocale}" />
+            </f:entry>
+            <f:entry title="${%NetworkProfile}" field="networkProfile">
+                <f:select default="${instance.deviceState.networkProfile}" />
+            </f:entry>
+        </div>
+        <div only-for-app-type="DEVICE_APP,DEVICE_WEB">
+            <f:entry title="${%TimeoutDevices}" field="timeoutDevices">
+                <f:number min="0" default="15" />
+            </f:entry>
+        </div>
+        <div only-for-app-type="BROWSER">
+            <f:entry title="${%TimeoutBrowsers}" field="timeoutBrowsers">
+                <f:number min="0" default="120" />
+            </f:entry>
+        </div>
+        <div only-for-app-type="BROWSER">
+            <f:entry title="${%TestArgs}" field="testArgs">
+                <f:textbox placeholder="--spec tests/login-test.ts" />
+            </f:entry>
+        </div>
+        <f:entry title="${%WaitForResults}" field="waitForResults">
+            <f:checkbox default="true" />
         </f:entry>
     </f:advanced>
+    <script>
+        function findElementByName(parent, name) {
+            return parent.querySelector('[name=' + name + ']');
+        }
+
+        function findElementsByAttribute(parent, attribute) {
+            return parent.querySelectorAll('[' + attribute + ']');
+        }
+
+        function waitForElement(selector) {
+            return new Promise(resolve => {
+                if (document.querySelector(selector)) {
+                    return resolve(document.querySelector(selector));
+                }
+
+                const observer = new MutationObserver(mutations => {
+                    if (document.querySelector(selector)) {
+                        resolve(document.querySelector(selector));
+                        observer.disconnect();
+                    }
+                });
+
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            });
+        }
+
+        function updateFormFields(pluginBody) {
+            const appType = findElementByName(pluginBody, 'appType').value;
+            findElementsByAttribute(pluginBody, 'only-for-app-type').forEach((elem) => {
+                if (elem.getAttribute('only-for-app-type').split(',').includes(appType)) {
+                    elem.style.display = 'block';
+                } else {
+                    elem.style.display = 'none';
+                }
+            })
+        }
+
+        function load() {
+            waitForElement("div[descriptorid='com.testlio.plugins.jenkins.ScheduleAutomatedRunBuilder']").then((pluginBody) => {
+                updateFormFields(pluginBody);
+                findElementByName(pluginBody, 'appType').addEventListener('change', function () {
+                    updateFormFields(pluginBody);
+                });
+            })
+        }
+
+        load();
+    </script>
 </j:jelly>
