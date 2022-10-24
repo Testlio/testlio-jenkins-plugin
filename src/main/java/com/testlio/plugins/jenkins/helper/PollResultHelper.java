@@ -13,7 +13,7 @@ import org.springframework.http.ResponseEntity;
 public class PollResultHelper {
   final static int MAX_FAILED_POLLS = 3;
   final static int POLLING_INTERVAL = 1000 * 60; // 1 minute
-  final static int INITIAL_INTERVAL = 1000 * 240; // 4 minutes
+  final static int INITIAL_INTERVAL = 1000 * 180; // 3 minutes
 
   public static void pollResults(TaskListener listener, RestClient restClient, RunDTO automatedRun, RunConfigurationAction config) throws InterruptedException {
     if (!config.getWaitForResults()) {
@@ -28,13 +28,13 @@ public class PollResultHelper {
     String resultStatus = "";
     int failedRequests = 0;
     listener.getLogger().println("Step 8.2: Starting to poll for results at an interval of " + POLLING_INTERVAL / 1000 + " seconds.");
-    while (StringUtils.isNotBlank(resultStatus)) {
+    while (StringUtils.isBlank(resultStatus)) {
       ResponseEntity<String> response = restClient.getWithResponseEntity(automatedRunResultHref);
 
       listener.getLogger().println("ResponseCode:" + response.getStatusCode());
       if (response.getStatusCode() != HttpStatus.OK) {
         if (failedRequests >= MAX_FAILED_POLLS) {
-          listener.getLogger().println("Failed to poll results, Trying again");
+          throw new Error("Failed to poll results, maximum tries reaches");
         }
         failedRequests++;
       }
@@ -54,9 +54,6 @@ public class PollResultHelper {
       if (!StringUtils.equals(resultStatus, "PASSED")) {
         throw new Error("There are some failures in the result - Run Failed!!");
       }
-    }
-    else {
-      throw new Error("Failed to poll results, maximum tries reaches!!");
     }
   }
 }

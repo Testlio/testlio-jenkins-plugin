@@ -142,7 +142,7 @@ public class ScheduleAutomatedRunBuilder extends Builder implements SimpleBuildS
             devicePlatformType
     );
 
-    final String accessToken = env.get("accessToken");
+    final String accessToken = env.get("testlioToken");
 
     FieldValidations.validateAccessToken(accessToken);
     final RestClient restClient = new RestClient(accessToken, listener);
