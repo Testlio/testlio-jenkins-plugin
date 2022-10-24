@@ -22,8 +22,8 @@ public class BrowserSelector {
         this.browserVersions = Arrays.asList(browserVersions);
     }
 
-    public List<BrowserNameEnum> getBrowserNames() {
-        return browserNames;
+    public List<String> getBrowserNames() {
+        return browserNames.stream().map(BrowserNameEnum::getValue).collect(Collectors.toList());
     }
 
     public List<String> getBrowserNameStrings() {
@@ -35,8 +35,8 @@ public class BrowserSelector {
         return browserNames.stream().map(BrowserNameEnum::getName).collect(Collectors.joining(", "));
     }
 
-    public List<PlatformNameEnum> getPlatformNames() {
-        return platformNames;
+    public List<String> getPlatformNames() {
+        return platformNames.stream().map(PlatformNameEnum::getValue).collect(Collectors.toList());
     }
 
     public List<String> getPlatformNameStrings() {
