@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -37,6 +38,11 @@ public class RestClient {
     return new Gson().fromJson(response.getBody(), typeClass);
   }
 
+  public ResponseEntity<String>  getWithResponseEntity(String url) {
+    listener.getLogger().println("Making a GET Request, Request Url:" + url);
+    return getRestTemplate().exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+  }
+
   public <T> Object post(String url, JSONObject request, Class<T> typeClass) {
     listener.getLogger().println("Making a POST Request, Request Url:" + url);
     listener.getLogger().println("Request Payload:" + request.toString());
@@ -48,11 +54,14 @@ public class RestClient {
     return new Gson().fromJson(response.getBody(), typeClass);
   }
 
-  public <T> Object put(String url, JSONObject request, Class<T> typeClass) {
+  public <T> Object put(String url, JSONObject request, Class<T> typeClass, boolean throwError) {
     listener.getLogger().println("Making a PUT Request, Request Url:" + url);
     listener.getLogger().println("Request Payload:" + request.toString());
     ResponseEntity<String> response = getRestTemplate().exchange(url, HttpMethod.PUT, new HttpEntity<>(request.toString(), headers), String.class);
     listener.getLogger().println("Response:" + response.getStatusCode());
+    if(throwError && response.getStatusCode() != HttpStatus.OK){
+      throw new Error("Error: HttpStatus code is: "+ response.getStatusCode());
+    }
     if (typeClass == null) {
       return null;
     }

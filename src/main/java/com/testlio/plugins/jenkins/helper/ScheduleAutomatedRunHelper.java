@@ -31,7 +31,7 @@ public class ScheduleAutomatedRunHelper {
     listener.getLogger().println("Step 1.1: Update automated run name");
     JSONObject updateRunRequest = new JSONObject();
     updateRunRequest.put("name", "JENKINS:- " + automatedRun.getName());
-    automatedRun = (RunDTO) restClient.put(automatedRun.getHref(), updateRunRequest, RunDTO.class);
+    automatedRun = (RunDTO) restClient.put(automatedRun.getHref(), updateRunRequest, RunDTO.class, false);
     return automatedRun;
   }
 
@@ -63,7 +63,7 @@ public class ScheduleAutomatedRunHelper {
       radioConfigs.put("nfc", config.getDeviceState().getDeviceRadios().getNfc());
       radioConfigs.put("wifi", config.getDeviceState().getDeviceRadios().getWifi());
       configuration.put("radios", radioConfigs);
-      if(config.getDeviceState().getDeviceLocation().getLatitude() != null && config.getDeviceState().getDeviceLocation().getLongitude() != null) {
+      if (config.getDeviceState().getDeviceLocation().getLatitude() != null && config.getDeviceState().getDeviceLocation().getLongitude() != null) {
         JSONObject locationConfig = new JSONObject();
         locationConfig.put("latitude", config.getDeviceState().getDeviceLocation().getLatitude());
         locationConfig.put("longitude", config.getDeviceState().getDeviceLocation().getLongitude());
@@ -83,14 +83,14 @@ public class ScheduleAutomatedRunHelper {
       updateRunConfigRequest.put("executionConfiguration", executionConfiguration);
     }
 
-    restClient.put(runConfigurationDTO.getData().get(0).getHref(), updateRunConfigRequest, null);
+    restClient.put(runConfigurationDTO.getData().get(0).getHref(), updateRunConfigRequest, null, false);
   }
 
   public static void scheduleAutomatedRun(TaskListener listener, RestClient restClient, RunDTO automatedRun, RunConfigurationAction config) {
     JSONObject scheduleRunRequest = new JSONObject();
     scheduleRunRequest.put("status", "inProgress");
     scheduleRunRequest.put("projectId", config.getProjectId());
-    restClient.put(automatedRun.getHref(), scheduleRunRequest, null);
+    restClient.put(automatedRun.getHref(), scheduleRunRequest, null, true);
 
     ProjectDTO projectResponse = (ProjectDTO) restClient.get("/project/v1/projects/" + config.getProjectId(), ProjectDTO.class);
     listener.getLogger().println("Run is successfully scheduled, find automated run href: " + APP_URL + "/" + projectResponse.getUrlCode() + "/runs/" + automatedRun.getNumber());
