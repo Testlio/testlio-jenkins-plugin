@@ -18,7 +18,7 @@ import java.util.Collections;
 
 public class ScheduleAutomatedRunHelper {
 
-  final static String APP_URL = "https://app.testlio.net/tmt/project";
+  final static String APP_URL = "https://app.testlio.com/tmt/project";
 
   public static RunDTO createNewAutomatedRun(TaskListener listener, RestClient restClient, RunConfigurationAction config) {
     JSONObject createRunRequest = new JSONObject();

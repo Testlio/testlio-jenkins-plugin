@@ -13,7 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 public class RestClient {
-  private static String BASE_URI = "https://api.testlio.net";
+  private static String BASE_URI = "https://api.testlio.com";
   private RestTemplate restTemplate;
   private HttpHeaders headers;
 
