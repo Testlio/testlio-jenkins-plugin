@@ -9,7 +9,7 @@ public class RunConfigurationDTO {
   private List<RunConfigurationData> data;
 
   @Data
-  public class RunConfigurationData {
+  public static class RunConfigurationData {
     private String href;
     private String guid;
     private String runHref;
@@ -23,11 +23,11 @@ public class RunConfigurationDTO {
     private ExecutionConfiguration executionConfiguration;
 
     @Data
-    public class Configuration {
+    public static class Configuration {
       private String networkProfileName;
       private Radios radios;
       @Data
-      public class Radios {
+      public static class Radios {
         private boolean wifi;
         private boolean bluetooth;
         private boolean gps;
@@ -35,7 +35,7 @@ public class RunConfigurationDTO {
       }
     }
     @Data
-    public class ExecutionConfiguration {
+    public static class ExecutionConfiguration {
       private boolean videoCapture;
       private int jobTimeoutMinutes;
     }

@@ -7,7 +7,7 @@ public class AutomatedRunResultsDTO {
   private Result results;
 
   @Data
-  public class Result {
+  public static class Result {
     private String result;
   }
 }

@@ -10,7 +10,7 @@ public class DevicesDTO {
   private List<DeviceData> data;
 
   @Data
-  public class DeviceData {
+  public static class DeviceData {
     private String href;
     private String id;
     private String model;

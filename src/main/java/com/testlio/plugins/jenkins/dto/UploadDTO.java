@@ -9,7 +9,7 @@ public class UploadDTO {
   private Href put;
   private Href get;
   @Data
-  public class Href {
+  public static class Href {
     private URL href;
   }
 }

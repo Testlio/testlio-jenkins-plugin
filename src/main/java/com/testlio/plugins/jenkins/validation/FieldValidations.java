@@ -44,7 +44,7 @@ public class FieldValidations {
       return ret;
     });
 
-    if(file.length() > FILE_MAX_SIZE) {
+    if(file!=null && file.length() > FILE_MAX_SIZE) {
       throw new IllegalArgumentException("Uploading "+fileDTO.getFileName()+" failed: max. file size "+FILE_MAX_SIZE/ONE_GB_IN_BYTES+"GB");
     }
     fileDTO.setFile(file);

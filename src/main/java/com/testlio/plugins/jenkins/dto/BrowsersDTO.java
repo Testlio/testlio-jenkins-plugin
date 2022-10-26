@@ -10,7 +10,7 @@ public class BrowsersDTO {
   private List<BrowserData> data;
 
   @Data
-  public class BrowserData {
+  public static class BrowserData {
     private String href;
     private String id;
     private String browserName;

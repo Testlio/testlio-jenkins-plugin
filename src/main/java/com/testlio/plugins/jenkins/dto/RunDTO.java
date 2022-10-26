@@ -15,7 +15,7 @@ public class RunDTO {
   private Href configuration;
 
   @Data
-  public class Href {
+  public static class Href {
     private String href;
   }
 }
