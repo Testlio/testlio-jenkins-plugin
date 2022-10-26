@@ -9,6 +9,9 @@ work
 *.ipr
 .idea
 
+# OS X
+.DS_Store
+
 # Eclipse project files
 .settings
 .classpath
