@@ -17,7 +17,7 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.48</version>
-        <relativePath />
+        <relativePath/>
     </parent>
     <groupId>com.testlio.plugins</groupId>
     <artifactId>testlio-jenkins-plugin</artifactId>
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.7</version>
+            <version>1.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
