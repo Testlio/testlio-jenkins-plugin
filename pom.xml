@@ -17,7 +17,7 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
         <version>4.48</version>
-        <relativePath />
+        <relativePath/>
     </parent>
     <groupId>com.testlio.plugins</groupId>
     <artifactId>testlio-jenkins-plugin</artifactId>
@@ -103,7 +103,7 @@
       <dependency>
         <groupId>org.projectlombok</groupId>
         <artifactId>lombok</artifactId>
-        <version>1.18.24</version>
+        <version>1.18.34</version>
         <scope>provided</scope>
       </dependency>
       <dependency>
